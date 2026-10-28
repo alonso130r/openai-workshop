@@ -130,7 +130,7 @@ export default function App() {
       }
       if (
         (e.target as HTMLElement).closest(
-          'input,textarea,[contenteditable="true"]',
+          'input,textarea,select,[contenteditable="true"]',
         )
       )
         return;
@@ -139,6 +139,20 @@ export default function App() {
         (e.target as HTMLElement).closest("button,a,summary")
       )
         return;
+      if (e.key === " " && content[active - 1].scene) {
+        e.preventDefault();
+        document.dispatchEvent(new Event("presentation-toggle"));
+        return;
+      }
+      if (e.key === "]" || e.key === "[") {
+        e.preventDefault();
+        document.dispatchEvent(
+          new CustomEvent("presentation-step", {
+            detail: e.key === "]" ? 1 : -1,
+          }),
+        );
+        return;
+      }
       if (["ArrowDown", "ArrowRight", "PageDown", " "].includes(e.key)) {
         e.preventDefault();
         navigate(active + 1);
@@ -183,57 +197,36 @@ export default function App() {
       <a className="skip-link" href="#presentation">
         Skip to presentation
       </a>
-      <header className="site-header">
-        <a
-          className="wordmark"
-          href="#slide-1"
-          onClick={(e) => {
-            e.preventDefault();
-            navigate(1);
-          }}
-          aria-label="Go to opening slide"
+      <nav className="presenter-tools" aria-label="Presenter controls">
+        <button
+          ref={contentsButton}
+          aria-expanded={panel === "contents"}
+          aria-controls="presentation-panel"
+          onClick={() => setPanel(panel === "contents" ? null : "contents")}
         >
-          <span className="brand-mark" aria-hidden="true">
-            ↳
-          </span>
-          <span>
-            EXTRA WORK
-            <span className="wordmark-sub">A VISUAL TALK ON ML COMPILERS</span>
-          </span>
-        </a>
-        <div className="header-controls">
-          <span className="duration">45 MIN</span>
-          <button
-            ref={contentsButton}
-            aria-expanded={panel === "contents"}
-            aria-controls="presentation-panel"
-            onClick={() => setPanel(panel === "contents" ? null : "contents")}
-          >
-            Contents <span aria-hidden="true">☰</span>
-          </button>
-          <button
-            ref={notesButton}
-            aria-expanded={panel === "notes"}
-            aria-controls="presentation-panel"
-            onClick={() => setPanel(panel === "notes" ? null : "notes")}
-          >
-            Notes <span className="key-hint">N</span>
-          </button>
-          <button
-            className="fullscreen"
-            aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-            onClick={async () => {
-              try {
-                if (document.fullscreenElement) await document.exitFullscreen();
-                else await document.documentElement.requestFullscreen();
-              } catch {}
-            }}
-          >
-            {fullscreen ? "Exit" : "Fullscreen"}{" "}
-            <span aria-hidden="true">⛶</span>
-          </button>
-        </div>
-      </header>
+          Contents <kbd>C</kbd>
+        </button>
+        <button
+          ref={notesButton}
+          aria-expanded={panel === "notes"}
+          aria-controls="presentation-panel"
+          onClick={() => setPanel(panel === "notes" ? null : "notes")}
+        >
+          Notes <kbd>N</kbd>
+        </button>
+        <button
+          className="fullscreen"
+          aria-label={fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          onClick={async () => {
+            try {
+              if (document.fullscreenElement) await document.exitFullscreen();
+              else await document.documentElement.requestFullscreen();
+            } catch {}
+          }}
+        >
+          {fullscreen ? "Exit fullscreen" : "Fullscreen"}
+        </button>
+      </nav>
       <main
         id="presentation"
         ref={viewport}
@@ -243,7 +236,7 @@ export default function App() {
       >
         {content.map((s) => (
           <section
-            className={`slide ${s.id === 1 ? "opening" : ""}`}
+            className={`slide ${s.id === 1 ? "opening" : ""} ${s.scene ? "animated" : ""}`}
             id={`slide-${s.id}`}
             key={s.id}
             aria-labelledby={`title-${s.id}`}
@@ -252,12 +245,9 @@ export default function App() {
             <div className="slide-inner">
               {s.id === 1 ? (
                 <>
-                  <div className="hero-meta">
-                    <span className="eyebrow">
-                      An introduction to ML compilers
-                    </span>
-                    <span className="edition">THE MODEL STAYS THE SAME.</span>
-                  </div>
+                  <p className="opening-subtitle">
+                    A visual introduction to ML compilers
+                  </p>
                   <h1 id="title-1">
                     {settings.titles?.[1] ? (
                       settings.titles[1]
@@ -269,52 +259,25 @@ export default function App() {
                       </>
                     )}
                   </h1>
-                  <div className="hero-bottom">
-                    <div>
-                      <p className="hero-subtitle">
-                        Same model. Smarter execution.
-                      </p>
-                      <p className="hero-description">
-                        A visual tour of the work behind an inference,
-                        <br className="desktop-break" /> and the execution
-                        choices that can make it cheaper.
-                      </p>
-                      <p className="presenter">
-                        {settings.presenter || "A talk for curious builders"}
-                        {settings.affiliation && ` · ${settings.affiliation}`}
-                      </p>
-                    </div>
-                    <button
-                      className="begin-button"
-                      onClick={() => navigate(2)}
-                    >
-                      <span>Explore the execution</span>
-                      <span aria-hidden="true">↘</span>
-                    </button>
-                  </div>
-                  <div className="hero-foot">
-                    <span>
-                      SCROLL TO BEGIN <span aria-hidden="true">↓</span>
-                    </span>
-                    <span>01 / 31</span>
-                    <span>
-                      Co-sponsored by the OpenAI student organization at
-                      Waterloo
-                    </span>
-                  </div>
+                  <div className="title-divider" />
+                  <p className="hero-subtitle">
+                    Same model. Smarter execution.
+                  </p>
+                  {settings.presenter && (
+                    <p className="presenter">
+                      {settings.presenter}
+                      {settings.affiliation && ` · ${settings.affiliation}`}
+                    </p>
+                  )}
+                  <p className="co-sponsor">
+                    Co-sponsored by the OpenAI student organization at Waterloo
+                  </p>
+                  <p className="start-hint">Scroll or press ↓ to begin</p>
                 </>
               ) : (
                 <>
                   <div className="slide-kicker">
                     <span className="eyebrow">{chapterFor(s.id).label}</span>
-                    <span className="slide-kind">
-                      {s.scene
-                        ? "INTERACTIVE SCENE"
-                        : s.id >= 30
-                          ? "BACKUP"
-                          : "THE EXPLANATION"}{" "}
-                      <i /> {s.timing}
-                    </span>
                   </div>
                   <h2 id={`title-${s.id}`}>{title(s.id)}</h2>
                   <div className="slide-visual">
@@ -339,7 +302,6 @@ export default function App() {
                     )}
                   </div>
                   <div className="takeaway">
-                    <span className="takeaway-label">TAKEAWAY</span>
                     <p>
                       <Prose text={s.takeaway} />
                     </p>
@@ -350,31 +312,7 @@ export default function App() {
           </section>
         ))}
       </main>
-      <nav className="chapter-rail" aria-label="Chapter navigation">
-        {chapters.map((c) => (
-          <button
-            key={c.start}
-            className={chapterFor(active).start === c.start ? "current" : ""}
-            aria-label={`Go to ${c.label}`}
-            aria-current={
-              chapterFor(active).start === c.start ? "step" : undefined
-            }
-            onClick={() => navigate(c.start)}
-          >
-            <span>{c.label}</span>
-            <i />
-          </button>
-        ))}
-      </nav>
       <footer className="presentation-footer">
-        <div
-          className="footer-progress"
-          style={{ width: `${(active / 31) * 100}%` }}
-        />
-        <span className="current-chapter">{chapterFor(active).label}</span>
-        <span className="keyboard-help">
-          Scroll to explore <span>or use ↑ ↓</span>
-        </span>
         <div className="slide-controls">
           <button
             aria-label="Previous slide"

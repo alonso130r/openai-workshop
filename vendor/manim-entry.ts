@@ -3,3 +3,4 @@ export { ManimScene } from './src/components/Scene/ManimScene';
 export { Rectangle } from './src/mobjects/geometry/Rectangle';
 export { Text } from './src/mobjects/text/Text';
 export { Circle } from './src/mobjects/geometry/Circle';
+export { MathTex } from './src/mobjects/text/MathTex';
