@@ -258,7 +258,7 @@ export function IntroExample({ t }: { t: number }) {
         </Label>
       </Fade>
       <Caption t={t} at={44}>
-        No separate temporary array.
+        The fused kernel does not write a temporary array.
       </Caption>
     </>
   );
@@ -450,7 +450,7 @@ export function Memory({ t }: { t: number }) {
         <Tex x={1190} y={605} tex="y" color={C.green} size={42} />
       </Fade>
       <Caption t={t} at={18.5}>
-        Load a value once, then use it again.
+        Loaded values can be reused from fast storage.
       </Caption>
     </>
   );

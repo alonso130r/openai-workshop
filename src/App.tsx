@@ -11,19 +11,6 @@ import copy from "./presentation-copy.json";
 import { StaticVisual } from "./StaticVisual";
 import { Prose } from "./Math";
 const ScenePlayer = lazy(() => import("./Scenes"));
-const chapters = [
-  { start: 1, label: "Opening" },
-  { start: 2, label: "The example" },
-  { start: 4, label: "What a compiler does" },
-  { start: 7, label: "What changes for ML" },
-  { start: 10, label: "Common optimizations" },
-  { start: 19, label: "Limits of specialization" },
-  { start: 23, label: "Using it yourself" },
-  { start: 27, label: "Further reading" },
-  { start: 29, label: "Questions" },
-  { start: 30, label: "Backups" },
-];
-const chapterFor = (id: number) => chapters.findLast((c) => c.start <= id)!;
 const saved = () => {
   try {
     return JSON.parse(localStorage.getItem("extra-work-settings") || "{}");
@@ -278,15 +265,6 @@ export default function App() {
                 </>
               ) : (
                 <>
-                  <div className="slide-kicker">
-                    <span
-                      className={`eyebrow ${copy[s.id - 1].recap ? "recap-kicker" : ""}`}
-                    >
-                      {copy[s.id - 1].recap
-                        ? `${copy[s.id - 1].recap} · recap`
-                        : chapterFor(s.id).label}
-                    </span>
-                  </div>
                   <h2 id={`title-${s.id}`}>{title(s.id)}</h2>
                   <div className="slide-visual">
                     {s.scene ? (

@@ -27,7 +27,7 @@ export const scenes = {
     [38, "Add 3 locally"],
     [40, "Apply ReLU locally"],
     [42.5, "Write the last final value"],
-    [48, "Same answer, no separate temporary array"],
+    [48, "The fused kernel finishes without a temporary array"],
   ]),
   ClassicCompiler: plan(20, [
     [0, "The source program"],

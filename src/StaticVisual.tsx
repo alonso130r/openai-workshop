@@ -140,11 +140,11 @@ export function StaticVisual({ id }: { id: number }) {
       return (
         <div className="plan-recap">
           <div>
-            <p className="diagram-label">Build the plan</p>
+            <p className="diagram-label">Compile the program</p>
             <Flow items={["Program", "Compile", "Saved plan"]} />
           </div>
           <div>
-            <p className="diagram-label green-text">Use it again</p>
+            <p className="diagram-label green-text">Run the saved plan</p>
             <Flow items={["Input", "Saved plan", "Answer"]} />
           </div>
           <p className="one-line">Build beforehand, or on first use.</p>
@@ -380,14 +380,14 @@ export function StaticVisual({ id }: { id: number }) {
       return (
         <div className="closing-summary">
           <Flow
-            items={["Same model", "A different execution plan", "Same answers"]}
+            items={["Original model", "Compiled execution plan", "Equivalent results"]}
           />
           <div className="two-questions">
             <div>
-              <p>What work disappeared?</p>
+              <p>Which work was avoided?</p>
             </div>
             <div>
-              <p>Did the whole run improve?</p>
+              <p>Did total runtime decrease?</p>
             </div>
           </div>
         </div>
@@ -395,7 +395,7 @@ export function StaticVisual({ id }: { id: number }) {
     case 29:
       return (
         <div className="closing">
-          <p className="big-question">Where would you look first?</p>
+          <p className="big-question">Applying compilation to your workload</p>
           <div className="question-prompts">
             <span>Moving data</span>
             <span>Computing</span>

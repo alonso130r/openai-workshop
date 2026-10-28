@@ -154,7 +154,7 @@ export function Fusion({ t }: { t: number }) {
         <Tex x={1120} y={550} size={42} color={C.green} tex="[0,4,7]" />
       </g>
       <Caption t={t} at={23.5}>
-        Keep the temporary inside the same GPU program.
+        The intermediate value stays inside the fused program.
       </Caption>
     </>
   );
@@ -432,7 +432,7 @@ export function Tiling({ t }: { t: number }) {
         />
       </g>
       <Caption t={t} at={25}>
-        Reuse the blocks, then write the completed output.
+        Each input block contributes to several output values.
       </Caption>
     </>
   );
@@ -531,7 +531,7 @@ export function Replay({ t }: { t: number }) {
         />
       </Fade>
       <Caption t={t} at={19}>
-        Same calculations. Less waiting between launches.
+        Graph replay can reduce the gaps between kernel launches.
       </Caption>
     </>
   );

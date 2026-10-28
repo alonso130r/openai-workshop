@@ -1,77 +1,138 @@
 [
-  { "id": 1, "title": "Your AI Is Doing Extra Work", "presenter": "Vijay Goyal" },
+  {
+    "id": 1,
+    "title": "Your AI Is Doing Extra Work",
+    "presenter": "Vijay Goyal"
+  },
   {
     "id": 2,
-    "title": "Same answer. Less work.",
+    "title": "Fusing two operations",
     "speakerExtra": "The extended fused sequence shows one value at a time: load it, add 3 locally, replace negatives with zero, then write the final result. The orange intermediate is a local value, not a separate array. The value-by-value order is for teaching; GPU threads can run in parallel. The clip lasts 48 seconds. The central formula box from the original storyboard is omitted."
   },
   {
     "id": 3,
-    "title": "Change the execution, keep the answer.",
+    "title": "Both execution plans produce the same result",
     "recap": "The example"
   },
-  { "id": 4, "title": "A compiler turns a program into instructions." },
-  { "id": 5, "title": "Some work can happen before the program runs." },
+  {
+    "id": 4,
+    "title": "How a compiler translates a program"
+  },
+  {
+    "id": 5,
+    "title": "Calculations performed during compilation"
+  },
   {
     "id": 6,
-    "title": "Build the plan once. Run it many times.",
+    "title": "Reusing a compiled plan",
     "recap": "Compilers"
   },
-  { "id": 7, "title": "The same operation can act on an entire array." },
-  { "id": 8, "title": "Moving numbers can cost more than the arithmetic." },
-  { "id": 9, "title": "A compiler chooses how the calculations run." },
-  { "id": 10, "title": "Fusion avoids a separate temporary tensor." },
+  {
+    "id": 7,
+    "title": "Operations on arrays of numbers"
+  },
+  {
+    "id": 8,
+    "title": "The cost of moving data"
+  },
+  {
+    "id": 9,
+    "title": "Choosing an execution plan"
+  },
+  {
+    "id": 10,
+    "title": "Fusion avoids a separate temporary tensor"
+  },
   {
     "id": 11,
-    "title": "Keep the temporary inside one GPU program.",
+    "title": "Intermediate values stay inside the fused program",
     "recap": "Fusion"
   },
-  { "id": 12, "title": "Two memory accesses disappear." },
-  { "id": 13, "title": "One input row helps compute two answers." },
-  { "id": 14, "title": "Tiling reuses a small block of loaded inputs." },
+  {
+    "id": 12,
+    "title": "Fusion removes a temporary write and read"
+  },
+  {
+    "id": 13,
+    "title": "Reusing an input row"
+  },
+  {
+    "id": 14,
+    "title": "Tiling reuses blocks of loaded inputs"
+  },
   {
     "id": 15,
-    "title": "Reuse the values you already loaded.",
+    "title": "A loaded block can contribute to several outputs",
     "recap": "Tiling"
   },
-  { "id": 16, "title": "Short GPU programs can wait between launches." },
+  {
+    "id": 16,
+    "title": "Waiting between GPU kernel launches"
+  },
   {
     "id": 17,
-    "title": "Replay the launches. Compute new answers.",
+    "title": "Reusing a prepared launch sequence",
     "recap": "Replay"
   },
   {
     "id": 18,
-    "title": "Three ways to remove extra work.",
+    "title": "Summary of fusion, tiling and graph replay",
     "recap": "The optimizations"
   },
-  { "id": 19, "title": "Does this input still fit the saved plan?" },
-  { "id": 20, "title": "A plan can support one shape or a range." },
-  { "id": 21, "title": "A faster part gives a smaller overall gain." },
+  {
+    "id": 19,
+    "title": "Checking whether inputs match a saved plan"
+  },
+  {
+    "id": 20,
+    "title": "Supporting one input shape or a range"
+  },
+  {
+    "id": 21,
+    "title": "How a partial speedup affects total runtime"
+  },
   {
     "id": 22,
-    "title": "A saved plan must still fit and still help.",
+    "title": "Correctness and performance of compiled plans",
     "recap": "The limits"
   },
-  { "id": 23, "title": "Try compiling the same model." },
+  {
+    "id": 23,
+    "title": "Compiling an existing PyTorch model"
+  },
   {
     "id": 24,
-    "title": "Ask the agent to show what improved.",
+    "title": "Evaluating compilation with a coding agent",
     "speakerExtra": "Full agent prompt: Profile this inference path first. Try torch.compile on the repeated tensor computation. Keep model behavior and precision fixed. Compare correctness, cold-start cost, warm latency, and peak memory across representative shapes."
   },
-  { "id": 25, "title": "First find out why compilation did not help." },
+  {
+    "id": 25,
+    "title": "Investigating graph breaks and recompilation"
+  },
   {
     "id": 26,
-    "title": "Compare the same work fairly.",
+    "title": "Checking correctness and measuring runtime",
     "recap": "Trying it yourself"
   },
-  { "id": 27, "title": "Start with one small experiment." },
+  {
+    "id": 27,
+    "title": "Resources for trying compilation"
+  },
   {
     "id": 28,
-    "title": "Find the extra work. Check the whole result.",
+    "title": "Evaluating compilation across the full workload",
     "recap": "The talk"
   },
-  { "id": 29, "title": "Questions" },
-  { "id": 30, "title": "Two different meanings of “graph”." },
-  { "id": 31, "title": "The vocabulary, in plain language." }
+  {
+    "id": 29,
+    "title": "Questions"
+  },
+  {
+    "id": 30,
+    "title": "Compiler graphs and CUDA Graphs"
+  },
+  {
+    "id": 31,
+    "title": "Compiler terminology"
+  }
 ]
