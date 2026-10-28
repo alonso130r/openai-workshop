@@ -221,6 +221,7 @@ export default function ScenePlayer({
         <div className="scene-timeline">
           <input
             aria-label="Animation progress"
+            aria-valuetext={`${beat.label}, ${Math.round(time)} seconds`}
             type="range"
             min={0}
             max={plan.duration}
@@ -254,9 +255,6 @@ export default function ScenePlayer({
           <option value={1.5}>1.5×</option>
         </select>
       </div>
-      <p className="scene-beat" aria-live="off">
-        {beat.label}
-      </p>
     </div>
   );
 }

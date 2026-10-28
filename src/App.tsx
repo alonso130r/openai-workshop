@@ -7,6 +7,7 @@ import {
   useState,
 } from "react";
 import content from "./content.json";
+import copy from "./presentation-copy.json";
 import { StaticVisual } from "./StaticVisual";
 import { Prose } from "./Math";
 const ScenePlayer = lazy(() => import("./Scenes"));
@@ -46,7 +47,7 @@ export default function App() {
   const contentsButton = useRef<HTMLButtonElement>(null);
   const lastActive = useRef(1);
   const slide = content[active - 1];
-  const title = (id: number) => settings.titles?.[id] || content[id - 1].title;
+  const title = (id: number) => settings.titles?.[id] || copy[id - 1].title;
   const navigate = useCallback((id: number, instant = false) => {
     const target = Math.max(1, Math.min(content.length, id));
     const el = document.getElementById(`slide-${target}`);
@@ -261,7 +262,7 @@ export default function App() {
                   </h1>
                   <div className="title-divider" />
                   <p className="hero-subtitle">
-                    Same model. Smarter execution.
+                    How compilers avoid unnecessary work.
                   </p>
                   {settings.presenter && (
                     <p className="presenter">
@@ -277,7 +278,13 @@ export default function App() {
               ) : (
                 <>
                   <div className="slide-kicker">
-                    <span className="eyebrow">{chapterFor(s.id).label}</span>
+                    <span
+                      className={`eyebrow ${copy[s.id - 1].recap ? "recap-kicker" : ""}`}
+                    >
+                      {copy[s.id - 1].recap
+                        ? `${copy[s.id - 1].recap} · recap`
+                        : chapterFor(s.id).label}
+                    </span>
                   </div>
                   <h2 id={`title-${s.id}`}>{title(s.id)}</h2>
                   <div className="slide-visual">
@@ -300,11 +307,6 @@ export default function App() {
                     ) : (
                       <StaticVisual id={s.id} />
                     )}
-                  </div>
-                  <div className="takeaway">
-                    <p>
-                      <Prose text={s.takeaway} />
-                    </p>
                   </div>
                 </>
               )}
@@ -390,6 +392,14 @@ export default function App() {
                 <p className="notes-copy">
                   <Prose text={slide.notes} />
                 </p>
+                {copy[active - 1].speakerExtra && (
+                  <>
+                    <h3>Full example</h3>
+                    <p>
+                      <Prose text={copy[active - 1].speakerExtra ?? ""} />
+                    </p>
+                  </>
+                )}
                 <h3>Audience takeaway</h3>
                 <p>
                   <Prose text={slide.takeaway} />
@@ -427,7 +437,9 @@ export default function App() {
                   <label>
                     Slide title
                     <input
-                      value={settings.titles?.[active] ?? slide.title}
+                      value={
+                        settings.titles?.[active] ?? copy[active - 1].title
+                      }
                       onChange={(e) =>
                         setSettings({
                           ...settings,

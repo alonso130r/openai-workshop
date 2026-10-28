@@ -1,0 +1,73 @@
+[
+  { "id": 1, "title": "Your AI Is Doing Extra Work" },
+  { "id": 2, "title": "Same answer. Less work." },
+  {
+    "id": 3,
+    "title": "Change the execution, keep the answer.",
+    "recap": "The example"
+  },
+  { "id": 4, "title": "A compiler turns a program into instructions." },
+  { "id": 5, "title": "Some work can happen before the program runs." },
+  {
+    "id": 6,
+    "title": "Build the plan once. Run it many times.",
+    "recap": "Compilers"
+  },
+  { "id": 7, "title": "The same operation can act on an entire array." },
+  { "id": 8, "title": "Moving numbers can cost more than the arithmetic." },
+  { "id": 9, "title": "A compiler chooses how the calculations run." },
+  { "id": 10, "title": "Fusion avoids a separate temporary tensor." },
+  {
+    "id": 11,
+    "title": "Keep the temporary inside one GPU program.",
+    "recap": "Fusion"
+  },
+  { "id": 12, "title": "Two memory accesses disappear." },
+  { "id": 13, "title": "One input row helps compute two answers." },
+  { "id": 14, "title": "Tiling reuses a small block of loaded inputs." },
+  {
+    "id": 15,
+    "title": "Reuse the values you already loaded.",
+    "recap": "Tiling"
+  },
+  { "id": 16, "title": "Short GPU programs can wait between launches." },
+  {
+    "id": 17,
+    "title": "Replay the launches. Compute new answers.",
+    "recap": "Replay"
+  },
+  {
+    "id": 18,
+    "title": "Three ways to remove extra work.",
+    "recap": "The optimizations"
+  },
+  { "id": 19, "title": "Does this input still fit the saved plan?" },
+  { "id": 20, "title": "A plan can support one shape or a range." },
+  { "id": 21, "title": "A faster part gives a smaller overall gain." },
+  {
+    "id": 22,
+    "title": "A saved plan must still fit and still help.",
+    "recap": "The limits"
+  },
+  { "id": 23, "title": "Try compiling the same model." },
+  {
+    "id": 24,
+    "title": "Ask the agent to show what improved.",
+    "speakerExtra": "Full agent prompt: Profile this inference path first. Try torch.compile on the repeated tensor computation. Keep model behavior and precision fixed. Compare correctness, cold-start cost, warm latency, and peak memory across representative shapes."
+  },
+  { "id": 25, "title": "First find out why compilation did not help." },
+  {
+    "id": 26,
+    "title": "Compare the same work fairly.",
+    "recap": "Trying it yourself"
+  },
+  { "id": 27, "title": "Start with one small experiment." },
+  {
+    "id": 28,
+    "title": "Find the extra work. Check the whole result.",
+    "recap": "The talk"
+  },
+  { "id": 29, "title": "Questions" },
+  { "id": 30, "title": "Two different meanings of “graph”." },
+  { "id": 31, "title": "The vocabulary, in plain language." }
+]

@@ -140,20 +140,16 @@ export function IntroExample({ t }: { t: number }) {
           y={465}
           size={32}
           color={C.orange}
-          tex={String.raw`[-2,4,7]\quad\text{stays local}`}
+          tex={String.raw`[-2,4,7]\quad\text{inside the program}`}
         />
       </Fade>
-      <Fade t={t} at={20}>
-        <Tex
-          x={720}
-          y={565}
-          size={47}
-          color={C.green}
-          tex={String.raw`[0,4,7]=[0,4,7]`}
-        />
+      <Fade t={t} at={7.5} until={13}>
+        <Label x={720} y={560} size={29}>
+          ReLU replaces negative values with zero.
+        </Label>
       </Fade>
       <Caption t={t} at={21.5}>
-        Same arithmetic. No separate temporary tensor.
+        No separate temporary array.
       </Caption>
     </>
   );
@@ -163,13 +159,7 @@ export function ClassicCompiler({ t }: { t: number }) {
   const fold = p(t, 13, 16);
   return (
     <>
-      <Node
-        x={240}
-        y={230}
-        w={300}
-        label="Source program"
-        draw={p(t, 0, 0.9)}
-      />
+      <Node x={240} y={230} w={300} label="Program" draw={p(t, 0, 0.9)} />
       <Fade t={t} at={1}>
         <Tex x={240} y={365} size={38} tex={String.raw`y=x+(2+3)`} />
       </Fade>
@@ -178,13 +168,13 @@ export function ClassicCompiler({ t }: { t: number }) {
         x={720}
         y={230}
         w={300}
-        label="Structured IR"
+        label="Work list"
         color={C.orange}
         draw={p(t, 3, 4.2)}
       />
       <Fade t={t} at={4}>
         <Label x={480} y={150} size={24} color={C.muted}>
-          recognize structure
+          list the work
         </Label>
       </Fade>
       <Arrow x1={890} y1={230} x2={1030} y2={230} draw={p(t, 6, 7.5)} />
@@ -192,18 +182,18 @@ export function ClassicCompiler({ t }: { t: number }) {
         x={1200}
         y={230}
         w={300}
-        label="Target program"
+        label="Instructions"
         color={C.green}
         draw={p(t, 7, 8.2)}
       />
       <Fade t={t} at={8}>
         <Label x={960} y={150} size={24} color={C.muted}>
-          generate instructions
+          choose instructions
         </Label>
       </Fade>
       <Fade t={t} at={9}>
         <Label x={720} y={410} size={26} color={C.muted}>
-          One optimization pass
+          Simplify this expression
         </Label>
       </Fade>
       <g opacity={1 - fold} transform={`translate(${fold * 150},0)`}>
@@ -218,7 +208,7 @@ export function ClassicCompiler({ t }: { t: number }) {
         <Tex x={1200} y={365} size={38} color={C.green} tex="y=x+5" />
       </Fade>
       <Caption t={t} at={17.5}>
-        Compute fixed expressions once, during compilation.
+        Calculate fixed expressions before running.
       </Caption>
     </>
   );
@@ -244,7 +234,7 @@ export function Memory({ t }: { t: number }) {
       </Fade>
       <Fade t={t} at={2}>
         <Label x={250} y={540} size={25} color={C.muted}>
-          large capacity
+          more space
         </Label>
       </Fade>
       <Node
@@ -258,10 +248,10 @@ export function Memory({ t }: { t: number }) {
       />
       <Fade t={t} at={4}>
         <Label x={740} y={170} color={C.blueLight}>
-          On-chip storage
+          Fast on-chip storage
         </Label>
         <Label x={740} y={540} size={25} color={C.muted}>
-          small working set
+          limited space
         </Label>
       </Fade>
       <Node
@@ -351,7 +341,7 @@ export function Memory({ t }: { t: number }) {
         <Tex x={1190} y={605} tex="y" color={C.green} size={42} />
       </Fade>
       <Caption t={t} at={18.5}>
-        Moving values can cost more than computing with them.
+        Load a value once, then use it again.
       </Caption>
     </>
   );
@@ -364,10 +354,10 @@ export function Compiler({ t }: { t: number }) {
     <>
       <Fade t={t} at={0}>
         <Label x={720} y={85} color={C.muted} size={27}>
-          Captured tensor operation graph
+          One possible execution plan
         </Label>
       </Fade>
-      {["Matmul", "Bias", "ReLU", "Output"].map((s, i) => (
+      {["Multiply", "Add bias", "ReLU", "Result"].map((s, i) => (
         <Node
           key={s}
           x={210 + i * 340}
@@ -403,7 +393,7 @@ export function Compiler({ t }: { t: number }) {
         y={515}
         w={450}
         h={90}
-        label="Library or generated matmul"
+        label="Matrix multiply program"
         draw={p(t, 6.5, 8)}
       />
       <rect
@@ -423,7 +413,7 @@ export function Compiler({ t }: { t: number }) {
       />
       <Fade t={t} at={12}>
         <Label x={720} y={380} color={C.green} size={27}>
-          compatible elementwise operations
+          run these together
         </Label>
       </Fade>
       <Arrow x1={720} y1={405} x2={720} y2={455} color={C.green} draw={down} />
@@ -432,12 +422,12 @@ export function Compiler({ t }: { t: number }) {
         y={515}
         w={500}
         h={90}
-        label="Fused elementwise kernel"
+        label="One program: add + ReLU"
         color={C.green}
         draw={down}
       />
       <Caption t={t} at={18.5}>
-        One possible lowering, not a universal kernel arrangement.
+        These calculations can share one GPU program.
       </Caption>
     </>
   );

@@ -1,495 +1,441 @@
+import { Fragment, type ReactNode } from "react";
 import { MathText } from "./Math";
-const sources = {
+
+const urls = {
   tutorial:
     "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html",
   trouble:
     "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html",
   triton:
     "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html",
-  paper: "https://docs.pytorch.org/assets/pytorch2-2.pdf",
-  cuda: "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
-  graphs:
-    "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html",
 };
-function Steps({ items }: { items: [string, string][] }) {
+
+function Flow({ items }: { items: ReactNode[] }) {
   return (
-    <div className="steps">
-      {items.map(([a, b], i) => (
-        <div className="step" key={a}>
-          <span className="step-no">0{i + 1}</span>
-          <h3>{a}</h3>
-          <p>{b}</p>
-        </div>
+    <div className="visual-flow">
+      {items.map((item, i) => (
+        <Fragment key={i}>
+          {i > 0 && (
+            <span className="flow-arrow" aria-hidden="true">
+              →
+            </span>
+          )}
+          <div className="flow-node">{item}</div>
+        </Fragment>
       ))}
     </div>
   );
 }
-function Compare({
-  left,
-  right,
+function Checks({ items }: { items: string[] }) {
+  return (
+    <ol className="recap-checks">
+      {items.map((item, i) => (
+        <li key={item}>
+          <span>{i + 1}</span>
+          <p>{item}</p>
+        </li>
+      ))}
+    </ol>
+  );
+}
+function Access({
+  children,
+  removed = false,
 }: {
-  left: [string, string, string];
-  right: [string, string, string];
+  children: string;
+  removed?: boolean;
 }) {
   return (
-    <div className="compare">
-      {[left, right].map(([a, b, c], i) => (
-        <div className={"compare-side " + (i ? "green" : "blue")} key={a}>
-          <span className="eyebrow">{a}</span>
-          <h3>{b}</h3>
-          <p>{c}</p>
-        </div>
-      ))}
-    </div>
+    <span className={`access ${removed ? "removed" : ""}`}>{children}</span>
   );
 }
-function Links({ items }: { items: [string, string, string][] }) {
+function ReuseSketch() {
   return (
-    <div className="resource-list">
-      {items.map(([title, detail, url], i) => (
-        <a href={url} target="_blank" rel="noreferrer" key={url}>
-          <span className="step-no">0{i + 1}</span>
-          <div>
-            <h3>{title}</h3>
-            <p>{detail}</p>
-          </div>
-          <span aria-hidden="true">↗</span>
-        </a>
-      ))}
-    </div>
+    <svg
+      className="concept-sketch"
+      viewBox="0 0 1000 330"
+      role="img"
+      aria-label="One loaded block of inputs contributes to several outputs"
+    >
+      <g fill="none" stroke="#58c4dd" strokeWidth="2">
+        {[0, 1].flatMap((r) =>
+          [0, 1].map((c) => (
+            <rect
+              key={`${r}-${c}`}
+              x={150 + c * 65}
+              y={90 + r * 65}
+              width="60"
+              height="60"
+              fill="#58c4dd22"
+            />
+          )),
+        )}
+        <path d="M310 150C460 150 460 80 640 80M310 150C460 150 460 230 640 230" />
+        <path d="M628 72l12 8-12 8M628 222l12 8-12 8" />
+      </g>
+      <g fill="#83c16722" stroke="#83c167" strokeWidth="2">
+        <rect x="660" y="40" width="150" height="80" />
+        <rect x="660" y="190" width="150" height="80" />
+      </g>
+      <g
+        fill="#eee"
+        fontFamily="KaTeX_Main, Georgia, serif"
+        fontSize="27"
+        textAnchor="middle"
+      >
+        <text x="215" y="280" fill="#58c4dd">
+          One loaded block
+        </text>
+        <text x="735" y="90">
+          Output 1
+        </text>
+        <text x="735" y="240">
+          Output 2
+        </text>
+      </g>
+    </svg>
   );
 }
+
 export function StaticVisual({ id }: { id: number }) {
   switch (id) {
     case 3:
       return (
-        <div className="question-layout">
-          <p className="big-question">
-            A correct program.
-            <br />
-            <span>A better execution plan?</span>
-          </p>
-          <div className="two-lines">
-            <p>Many layers. Different shapes. Different devices.</p>
-            <p>Let a compiler find the opportunities.</p>
+        <div className="plan-recap">
+          <div>
+            <p className="diagram-label">Separate steps</p>
+            <Flow
+              items={[
+                <MathText tex="x" />,
+                "Add 3",
+                "Temporary",
+                "ReLU",
+                <MathText tex="y" />,
+              ]}
+            />
           </div>
+          <div>
+            <p className="diagram-label green-text">Combined step</p>
+            <Flow
+              items={[
+                <MathText tex="x" />,
+                "Add 3 + ReLU",
+                <MathText tex="y" />,
+              ]}
+            />
+          </div>
+          <p className="one-line">
+            <MathText tex="y=[0,4,7]" /> in both cases.
+          </p>
         </div>
       );
     case 4:
       return (
-        <>
-          <p className="definition">
-            A compiler <em>translates a program</em> while preserving its
-            required behavior.
-          </p>
-          <Steps
-            items={[
-              [
-                "Check meaning",
-                "Recognize structure and validate the program.",
-              ],
-              [
-                "Represent the work",
-                "Make operations and dependencies explicit.",
-              ],
-              [
-                "Generate a target",
-                "Produce instructions, bytecode, or another language.",
-              ],
-            ]}
-          />
-        </>
+        <div className="single-diagram">
+          <Flow items={["Your program", "Compiler", "Instructions"]} />
+          <p className="one-line">The required behavior stays the same.</p>
+        </div>
       );
     case 6:
       return (
-        <Compare
-          left={[
-            "Ahead of time",
-            "Build → run",
-            "Translation happens before use. Its cost appears during the build.",
-          ]}
-          right={[
-            "Just in time",
-            "Run → compile → reuse",
-            "Runtime information can guide compilation. Early calls pay the cost.",
-          ]}
-        />
+        <div className="plan-recap">
+          <div>
+            <p className="diagram-label">Build the plan</p>
+            <Flow items={["Program", "Compile", "Saved plan"]} />
+          </div>
+          <div>
+            <p className="diagram-label green-text">Use it again</p>
+            <Flow items={["Input", "Saved plan", "Answer"]} />
+          </div>
+          <p className="one-line">Build beforehand, or on first use.</p>
+        </div>
       );
     case 7:
       return (
-        <Compare
-          left={[
-            "General programs",
-            "Instructions & control flow",
-            "Compilers already reason about loops, branches, and numerical work.",
-          ]}
-          right={[
-            "ML emphasis",
-            "Whole tensor operations",
-            "Matrix multiplication, reductions, and connected operations expose larger opportunities.",
-          ]}
-        />
+        <div className="array-example">
+          <div className="array-row">
+            <MathText
+              display
+              tex={String.raw`\begin{bmatrix}-5&1&4&0\\2&-3&7&-8\\3&6&-1&9\end{bmatrix}`}
+            />
+            <span className="array-operation">
+              Add 3<br />
+              then ReLU<span aria-hidden="true">→</span>
+            </span>
+            <span className="green-text">
+              <MathText
+                display
+                tex={String.raw`\begin{bmatrix}0&4&7&3\\5&0&10&0\\6&9&2&12\end{bmatrix}`}
+              />
+            </span>
+          </div>
+          <p className="one-line">An array of numbers is called a tensor.</p>
+        </div>
       );
     case 11:
       return (
-        <Steps
-          items={[
-            [
-              "Load",
-              "Split the tensor into blocks. Load input and bias with edge masks.",
-            ],
-            [
-              "Compute locally",
-              "Add bias, then apply ReLU. Keep the intermediate in registers.",
-            ],
-            [
-              "Store",
-              "Write the final result once. More fusion can increase register pressure.",
-            ],
-          ]}
-        />
+        <div className="single-diagram">
+          <div className="kernel-enclosure">
+            <p className="diagram-label">One GPU program</p>
+            <Flow items={["Read input", "Add 3 + ReLU", "Write result"]} />
+          </div>
+          <p className="one-line">
+            <MathText tex={String.raw`t=x+3,\quad y=\max(t,0)`} />
+          </p>
+          <p className="short-note">
+            No separate tensor for <MathText tex="t" />.
+          </p>
+        </div>
       );
     case 12:
       return (
-        <div className="traffic">
-          <div>
-            <span className="eyebrow">Separate kernels</span>
-            <h3>
-              <MathText tex="16N" /> <small>bytes</small>
-            </h3>
-            <div className="traffic-bar">
-              <i />
-              <i />
-              <i />
-              <i />
+        <div className="access-comparison">
+          <div className="access-row">
+            <span className="diagram-label">Separate</span>
+            <div>
+              <Access>Read input</Access>
+              <Access removed>Write temporary</Access>
+              <Access removed>Read temporary</Access>
+              <Access>Write output</Access>
             </div>
-            <p>Read input · write temporary · read temporary · write output</p>
+            <MathText tex="16N\;\text{bytes}" />
           </div>
-          <div className="green">
-            <span className="eyebrow">One fused kernel</span>
-            <h3>
-              <MathText tex="8N" /> <small>bytes</small>
-            </h3>
-            <div className="traffic-bar fused">
-              <i />
-              <i />
+          <div className="access-row fused">
+            <span className="diagram-label">Fused</span>
+            <div>
+              <Access>Read input</Access>
+              <Access>Write output</Access>
             </div>
-            <p>Read input · write output</p>
+            <MathText tex="8N\;\text{bytes}" />
           </div>
-          <p className="caution">
-            FP32: <MathText tex="4N" /> bytes per access. Bias traffic excluded.
-            Logical accesses, not measured HBM traffic or a promised speedup.
+          <p className="short-note">
+            <MathText tex="N" /> four-byte numbers; bias reads omitted. Logical
+            counts, not timing.
           </p>
         </div>
       );
     case 15:
       return (
-        <>
-          <Steps
-            items={[
-              [
-                "Own an output tile",
-                "Choose block dimensions and use strides to locate inputs.",
-              ],
-              [
-                "Accumulate in chunks",
-                "Load A and B blocks. Add dot products to local accumulators.",
-              ],
-              [
-                "Store the finished tile",
-                "Mask edges and write once after the reduction.",
-              ],
-            ]}
-          />
-          <p className="tradeoff">
-            Larger tiles → more reuse{" "}
-            <span>but more fast storage and potentially less parallelism.</span>
-          </p>
-        </>
+        <div className="single-diagram">
+          <ReuseSketch />
+          <p className="one-line">Larger blocks need more fast storage.</p>
+        </div>
       );
     case 17:
       return (
-        <Steps
-          items={[
-            ["Prepare", "Warm up eligible work and arrange stable buffers."],
-            [
-              "Capture",
-              "Record the GPU execution sequence with its constraints.",
-            ],
-            [
-              "Replay",
-              "Launch the prepared sequence with new inputs. Kernels compute new outputs.",
-            ],
-          ]}
-        />
+        <div className="single-diagram">
+          <Flow
+            items={[
+              "New inputs",
+              <div>
+                Prepared launches
+                <div className="mini-kernels">
+                  <i>K1</i>
+                  <i>K2</i>
+                  <i>K3</i>
+                </div>
+              </div>,
+              "New answers",
+            ]}
+          />
+          <p className="one-line">The GPU still does the calculations.</p>
+        </div>
       );
     case 18:
       return (
-        <div className="cost-table">
-          <div className="table-head">
-            <span>Mechanism</span>
-            <span>Cost addressed</span>
-            <span>What changes</span>
-          </div>
+        <div className="summary-rows">
           {[
-            [
-              "Fusion",
-              "Temporary tensor traffic",
-              "Keep intermediate values local",
-            ],
-            ["Tiling", "Repeated input loads", "Reuse loaded blocks"],
-            [
-              "Replay",
-              "Host submission overhead",
-              "Reuse a prepared execution sequence",
-            ],
-          ].map((row) => (
-            <div className="table-row" key={row[0]}>
-              {row.map((t) => (
-                <span key={t}>{t}</span>
-              ))}
+            ["Fusion", "Avoid a separate temporary tensor."],
+            ["Tiling", "Read the same inputs fewer times."],
+            ["Replay", "Reduce gaps between launches."],
+          ].map(([name, point]) => (
+            <div key={name}>
+              <h3>{name}</h3>
+              <span aria-hidden="true">→</span>
+              <p>{point}</p>
             </div>
           ))}
-          <p className="caution">
-            Start with a profiling hypothesis. These mechanisms can interact.
-          </p>
         </div>
       );
     case 20:
       return (
-        <>
-          <Compare
-            left={[
-              "Narrow specialization",
-              "Fixed assumptions",
-              "Potentially simpler scheduling. New inputs may need another variant.",
-            ]}
-            right={[
-              "Broader support",
-              "Dynamic dimensions",
-              "One program may handle a range of shapes, within constraints.",
-            ]}
-          />
-          <p className="tradeoff">
-            Shape bucketing{" "}
-            <span>
-              groups and pads lengths: extra arithmetic in exchange for fewer
-              variants.
-            </span>
-          </p>
-        </>
+        <div className="shape-comparison">
+          <div>
+            <h3>One shape</h3>
+            <MathText tex={String.raw`128\times256`} />
+            <Flow items={["Input", "Plan A"]} />
+          </div>
+          <div>
+            <h3>A range of shapes</h3>
+            <MathText tex={String.raw`128\times256,\quad192\times256`} />
+            <Flow items={["Either input", "Plan B"]} />
+          </div>
+          <p className="short-note">A single plan may support a range.</p>
+        </div>
       );
     case 21:
       return (
-        <div className="amdahl">
-          <span className="eyebrow">An analytical example</span>
-          <MathText display tex="0.5+\frac{0.5}{2}=0.75" />
-          <p>Make half the runtime twice as fast.</p>
-          <div className="runtime-bar">
-            <span>Unchanged half</span>
-            <span>Optimized half</span>
-            <i />
+        <div className="runtime-example">
+          <div className="runtime-row">
+            <span>Before</span>
+            <div>
+              <i className="unchanged">50</i>
+              <i className="original-part">50</i>
+            </div>
+            <MathText tex="100" />
           </div>
-          <p className="green-text">
-            <MathText tex="1/0.75\approx1.33\times" /> overall speedup
+          <div className="runtime-row">
+            <span>After</span>
+            <div>
+              <i className="unchanged">50</i>
+              <i className="improved-part">25</i>
+              <i className="saved-part" />
+            </div>
+            <MathText tex="75" />
+          </div>
+          <p className="one-line">
+            <MathText tex="2\times" /> faster in one half.{" "}
+            <span className="green-text">
+              <MathText tex="1.33\times" /> overall.
+            </span>
           </p>
-          <p className="caution">
-            Compile cost, spills, and finite search can outweigh savings.
-          </p>
+          <p className="short-note">Illustrative runtime, not a benchmark.</p>
         </div>
       );
     case 22:
       return (
-        <Compare
-          left={[
-            "A reusable compiler",
-            "Facts it can establish",
-            "Rules must hold across supported operators, shapes, and hardware.",
-          ]}
-          right={[
-            "A domain expert",
-            "Extra fixed structure",
-            "A known topology or sparsity pattern may justify a specialized operator.",
-          ]}
-        />
+        <div className="two-questions">
+          <div>
+            <p>Does it still apply?</p>
+            <span>A check on the inputs.</span>
+          </div>
+          <div>
+            <p>Is the full run faster?</p>
+            <span>A measurement of the workload.</span>
+          </div>
+        </div>
       );
     case 23:
       return (
         <div className="experiment">
-          <div className="code-label">PYTORCH · INFERENCE</div>
           <pre>
             <code>{`model.eval()\ncompiled_model = torch.compile(model)\n\nwith torch.inference_mode():\n    reference = model(example_input)\n    result = compiled_model(example_input)`}</code>
           </pre>
-          <p className="caution">
-            Assumes a loaded model, torch import, and supported device. Check
-            outputs with workload-appropriate tolerances. Compilation is
-            commonly lazy.
-          </p>
+          <p className="short-note">Keep the original path for comparison.</p>
         </div>
       );
     case 24:
       return (
         <div className="agent-prompt">
-          <span className="eyebrow">A request with a measurement plan</span>
           <blockquote>
-            Profile this inference path first. Try <code>torch.compile</code> on
-            the repeated tensor computation. Keep model behavior and precision
-            fixed. Compare correctness, cold-start cost, warm latency, and peak
-            memory across representative shapes.
+            Profile first. Try <code>torch.compile</code> with the same behavior
+            and precision. Compare answers, first-call cost, repeated runs, and
+            memory.
           </blockquote>
-          <p>
-            Retain the eager path. Report the environment and timing boundary.
-          </p>
         </div>
       );
     case 25:
       return (
-        <div className="diagnostics">
-          {[
-            [
-              'TORCH_LOGS="graph_breaks,recompiles"',
-              "Inspect graph breaks and new compiled variants. Set before launching Python.",
-            ],
-            [
-              "fullgraph=True",
-              "Require a single captured compiler graph. This does not mean a single kernel.",
-            ],
-            [
-              "dynamic=True",
-              "Attempt dynamic shape handling. Guards and constraints remain.",
-            ],
-            [
-              'mode="reduce-overhead"',
-              "Can use CUDA Graphs for eligible workloads.",
-            ],
-            [
-              'mode="max-autotune"',
-              "Spend additional compilation time selecting implementations.",
-            ],
-          ].map(([a, b]) => (
-            <div key={a}>
-              <code>{a}</code>
-              <p>{b}</p>
+        <div className="diagnostic-summary">
+          <code>TORCH_LOGS="graph_breaks,recompiles"</code>
+          <div className="two-questions">
+            <div>
+              <p>Graph break</p>
+              <span>Some work was left outside compilation.</span>
             </div>
-          ))}
+            <div>
+              <p>Recompile</p>
+              <span>A new plan was built.</span>
+            </div>
+          </div>
         </div>
       );
     case 26:
       return (
-        <Steps
+        <Checks
           items={[
-            [
-              "Check behavior",
-              "Same weights and precision. Compare outputs and relevant task metrics.",
-            ],
-            [
-              "Separate cold & warm",
-              "Warm both paths. Measure compile cost and repeat steady-state measurements.",
-            ],
-            [
-              "Use the real workload",
-              "Representative shapes, peak memory, and GPU-aware timing boundaries.",
-            ],
+            "Keep the model, inputs and precision fixed.",
+            "Check answers before comparing speed.",
+            "Separate first-call cost from repeated-call time.",
           ]}
         />
       );
     case 27:
       return (
-        <Links
-          items={[
-            [
-              "Start with torch.compile",
-              "Run the eager and compiled paths side by side.",
-              sources.tutorial,
-            ],
-            [
-              "Investigate one graph break",
-              "Understand capture boundaries and recompilation.",
-              sources.trouble,
-            ],
-            [
-              "Explore Triton",
-              "Begin with vector addition, then matrix multiplication.",
-              sources.triton,
-            ],
-          ]}
-        />
+        <div className="short-resources">
+          {[
+            ["Run the first example", urls.tutorial],
+            ["Investigate one graph break", urls.trouble],
+            ["Explore how kernels work", urls.triton],
+          ].map(([label, url], i) => (
+            <a href={url} target="_blank" rel="noreferrer" key={url}>
+              <span>{i + 1}</span>
+              {label}
+              <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </div>
       );
     case 28:
       return (
-        <Links
-          items={[
-            [
-              "Inside the PyTorch compiler",
-              "Capture, graph transformations, and lowering.",
-              sources.paper,
-            ],
-            [
-              "Understand GPU execution",
-              "Memory, occupancy, and hardware constraints.",
-              sources.cuda,
-            ],
-            [
-              "Understand CUDA Graph Trees",
-              "Replay, buffers, and memory interactions.",
-              sources.graphs,
-            ],
-          ]}
-        />
+        <div className="closing-summary">
+          <Flow
+            items={["Same model", "A different execution plan", "Same answers"]}
+          />
+          <div className="two-questions">
+            <div>
+              <p>What work disappeared?</p>
+            </div>
+            <div>
+              <p>Did the whole run improve?</p>
+            </div>
+          </div>
+        </div>
       );
     case 29:
       return (
         <div className="closing">
-          <p className="big-question">
-            Where is your model
-            <br />
-            <em>doing extra work?</em>
-          </p>
+          <p className="big-question">Where would you look first?</p>
           <div className="question-prompts">
-            <span>What repeats?</span>
-            <span>What changes?</span>
-            <span>How will you measure it?</span>
+            <span>Moving data</span>
+            <span>Computing</span>
+            <span>Waiting</span>
           </div>
         </div>
       );
     case 30:
       return (
-        <Compare
-          left={[
-            "Compiler operation graph",
-            "What to compute",
-            "Dependencies between tensor operations. One graph may lower to many kernels.",
-          ]}
-          right={[
-            "CUDA execution graph",
-            "How to submit it",
-            "A captured sequence of kernels and other CUDA operations for replay.",
-          ]}
-        />
+        <div className="graph-comparison">
+          <div>
+            <h3>Compiler graph</h3>
+            <Flow items={["Multiply", "Add", "ReLU"]} />
+            <p className="one-line">Which calculations depend on which?</p>
+          </div>
+          <div>
+            <h3>CUDA Graph</h3>
+            <div className="mini-kernels">
+              <i>K1</i>
+              <i>K2</i>
+              <i>K3</i>
+            </div>
+            <p className="one-line">Which GPU operations launch, and when?</p>
+          </div>
+        </div>
       );
     case 31:
       return (
         <dl className="glossary">
           {[
-            ["Tensor", "An array of numbers; it can live on a CPU or GPU."],
-            [
-              "Kernel",
-              "A program launched to do work on the GPU, not necessarily a model layer.",
-            ],
-            ["IR", "A structured representation of a program."],
-            ["Lowering", "Moving toward forms closer to the target machine."],
-            [
-              "Guard",
-              "A check that the assumptions of a compiled plan still hold.",
-            ],
-            [
-              "Graph break",
-              "A boundary around work the compiler cannot capture.",
-            ],
-          ].map(([a, b]) => (
-            <div key={a}>
-              <dt>{a}</dt>
-              <dd>{b}</dd>
+            ["Tensor", "An array of numbers."],
+            ["Kernel", "A program launched on the GPU."],
+            ["IR", "The compiler’s worksheet of operations."],
+            ["Lowering", "Turning that worksheet into target instructions."],
+            ["Guard", "A check that a saved plan still applies."],
+            ["Graph break", "Work left outside the captured compiler graph."],
+          ].map(([term, definition]) => (
+            <div key={term}>
+              <dt>{term}</dt>
+              <dd>{definition}</dd>
             </div>
           ))}
         </dl>

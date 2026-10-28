@@ -21,12 +21,12 @@ export function Fusion({ t }: { t: number }) {
     <>
       <g opacity={1 - join}>
         <Label x={720} y={75} size={34} color={C.orange}>
-          Separate kernels
+          Two GPU programs
         </Label>
       </g>
       <g opacity={join}>
         <Label x={720} y={75} size={34} color={C.green}>
-          One fused kernel
+          One GPU program
         </Label>
       </g>
       <Node x={150} y={235} w={190} label="Input" draw={p(t, 0, 0.7)} />
@@ -121,13 +121,10 @@ export function Fusion({ t }: { t: number }) {
         <Tex
           x={720}
           y={390}
-          tex={String.raw`[-2,4,7]\quad\text{in registers}`}
+          tex={String.raw`[-2,4,7]\quad\text{inside the program}`}
           color={C.orange}
           size={34}
         />
-        <Label x={720} y={455} color={C.muted} size={27}>
-          load input → compute locally → store output
-        </Label>
       </g>
       {[-5, 1, 4].map((value, i) => {
         const start = 20 + i * 0.5,
@@ -157,7 +154,7 @@ export function Fusion({ t }: { t: number }) {
         <Tex x={1120} y={550} size={42} color={C.green} tex="[0,4,7]" />
       </g>
       <Caption t={t} at={23.5}>
-        Remove a global-memory write and read. Keep the arithmetic.
+        Keep the temporary inside the same GPU program.
       </Caption>
     </>
   );
@@ -281,7 +278,7 @@ export function DotProduct({ t }: { t: number }) {
         amount={p(t, 14, 15.5)}
       />
       <Caption t={t} at={23.5}>
-        The same input row contributes to another output.
+        The blue row was used twice.
       </Caption>
     </>
   );
@@ -412,13 +409,9 @@ export function Tiling({ t }: { t: number }) {
         );
       })}
       <Fade t={t} at={4}>
-        <Tex
-          x={720}
-          y={485}
-          size={40}
-          color={C.green}
-          tex={String.raw`C_{\mathrm{tile}}\mathrel{+}=A_{\mathrm{block}}B_{\mathrm{block}}`}
-        />
+        <Label x={720} y={485} color={C.green} size={32}>
+          Add each block’s contribution.
+        </Label>
       </Fade>
       <g opacity={1 - chunk}>
         <Fade t={t} at={11}>
@@ -439,7 +432,7 @@ export function Tiling({ t }: { t: number }) {
         />
       </g>
       <Caption t={t} at={25}>
-        Accumulate locally, then write the completed output tile.
+        Reuse the blocks, then write the completed output.
       </Caption>
     </>
   );
@@ -525,7 +518,7 @@ export function Replay({ t }: { t: number }) {
       })}
       <Fade t={t} at={7}>
         <Label x={820} y={345} color={C.orange} size={27}>
-          submission gaps
+          waiting between launches
         </Label>
       </Fade>
       <Fade t={t} at={17}>
@@ -538,7 +531,7 @@ export function Replay({ t }: { t: number }) {
         />
       </Fade>
       <Caption t={t} at={19}>
-        Replay changes submission overhead, not kernel arithmetic.
+        Same calculations. Less waiting between launches.
       </Caption>
     </>
   );
@@ -576,7 +569,7 @@ export function Guards({ t }: { t: number }) {
         x={720}
         y={240}
         w={300}
-        label="Guard check"
+        label="Does the shape fit?"
         color={`rgb(${Math.round(mix(238, 255, fail))},${Math.round(mix(238, 134, fail))},${Math.round(mix(238, 47, fail))})`}
         draw={p(t, 1.5, 3)}
       />
@@ -593,7 +586,7 @@ export function Guards({ t }: { t: number }) {
           x={1210}
           y={240}
           w={300}
-          label="Compiled plan A"
+          label="Saved plan A"
           color={C.green}
           draw={p(t, 3, 4.3)}
         />
@@ -602,7 +595,7 @@ export function Guards({ t }: { t: number }) {
         <Tex
           x={720}
           y={365}
-          tex={String.raw`\text{shape matches}\;\checkmark`}
+          tex={String.raw`\text{shape fits}\;\checkmark`}
           color={C.green}
           size={32}
         />
@@ -611,7 +604,7 @@ export function Guards({ t }: { t: number }) {
         <Tex
           x={720}
           y={365}
-          tex={String.raw`\text{static assumption fails}`}
+          tex={String.raw`\text{shape does not fit}`}
           color={C.orange}
           size={30}
         />
@@ -631,11 +624,7 @@ export function Guards({ t }: { t: number }) {
           />
         );
       })}
-      <Fade t={t} at={4.5} until={13}>
-        <Label x={720} y={440} color={C.muted} size={26}>
-          dtype · device · strides · relevant program state
-        </Label>
-      </Fade>
+
       <Arrow
         x1={720}
         y1={405}
@@ -648,12 +637,12 @@ export function Guards({ t }: { t: number }) {
         x={720}
         y={550}
         w={480}
-        label="Compile another variant: plan B"
+        label="Build another plan: B"
         color={C.orange}
         draw={p(t, 18, 20)}
       />
       <Caption t={t} at={21}>
-        Dynamic shapes can sometimes reuse a single program.
+        Some plans can support several input shapes.
       </Caption>
     </>
   );
