@@ -267,7 +267,7 @@ export default function App() {
                   </p>
                   {presenterName && (
                     <p className="presenter">
-                      {presenterName}
+                      A talk by {presenterName}
                       {settings.affiliation && ` · ${settings.affiliation}`}
                     </p>
                   )}
