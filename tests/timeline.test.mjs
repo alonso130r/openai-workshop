@@ -5,6 +5,7 @@ import {
   interpolate,
   nextBeat,
   scenes,
+  introFusedValue,
 } from "../src/animation/timeline.mjs";
 
 test("motion has deterministic held endpoints and smooth interpolation", () => {
@@ -17,6 +18,29 @@ test("motion has deterministic held endpoints and smooth interpolation", () => {
     startVelocity < 0.002,
     "motion eases out of a hold instead of snapping",
   );
+});
+
+test("slide 2 computes each fused value locally before its only output write", () => {
+  assert.equal(scenes.IntroExample.duration, 48);
+  const first = introFusedValue(0, 22);
+  assert.equal(first.input, -5);
+  assert.equal(first.intermediate, -2);
+  assert.equal(first.output, 0);
+  assert.equal(first.phase, "adding");
+  assert.equal(first.written, false);
+  assert.equal(introFusedValue(0, 24).phase, "relu");
+  assert.equal(introFusedValue(0, 26).phase, "storing");
+  assert.equal(introFusedValue(0, 26).written, false);
+  assert.equal(introFusedValue(0, 26.5).written, true);
+  assert.equal(introFusedValue(1, 27).phase, "loading");
+  assert.equal(introFusedValue(1, 34.5).written, true);
+  assert.equal(introFusedValue(2, 42.5).written, true);
+  const final = [0, 1, 2].map((i) => introFusedValue(i, 48));
+  assert.deepEqual(
+    final.map((v) => v.output),
+    [0, 4, 7],
+  );
+  assert.ok(final.every((v) => v.written));
 });
 
 test("every scene can step forward, back, and hold its final frame", () => {

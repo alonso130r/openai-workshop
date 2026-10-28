@@ -11,3 +11,19 @@ export function nextBeat(
   time: number,
   direction: number,
 ): number;
+export function introFusedValue(
+  index: number,
+  time: number,
+): {
+  input: number;
+  intermediate: number;
+  output: number;
+  loadAt: number;
+  loadedAt: number;
+  addAt: number;
+  reluAt: number;
+  storeAt: number;
+  storedAt: number;
+  phase: "pending" | "loading" | "adding" | "relu" | "storing" | "done";
+  written: boolean;
+};

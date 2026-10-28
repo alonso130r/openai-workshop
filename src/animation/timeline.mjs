@@ -9,14 +9,25 @@ const plan = (duration, entries) => ({
   beats: entries.map(([at, label]) => ({ at, label })),
 });
 export const scenes = {
-  IntroExample: plan(24, [
+  IntroExample: plan(48, [
     [0, "Start with three numbers"],
     [4, "Add 3"],
     [8, "Apply ReLU"],
     [12, "Trace the temporary"],
-    [17, "Combine the operations"],
-    [21, "Keep the same output"],
-    [24, "Same result, less movement"],
+    [17, "Inside one fused kernel"],
+    [20.5, "Load the first value"],
+    [22, "Add 3 locally"],
+    [24, "Apply ReLU locally"],
+    [26.5, "Write the first final value"],
+    [28.5, "Load the next value"],
+    [30, "Add 3 locally"],
+    [32, "Apply ReLU locally"],
+    [34.5, "Write the second final value"],
+    [36.5, "Load the last value"],
+    [38, "Add 3 locally"],
+    [40, "Apply ReLU locally"],
+    [42.5, "Write the last final value"],
+    [48, "Same answer, no separate temporary array"],
   ]),
   ClassicCompiler: plan(20, [
     [0, "The source program"],
@@ -87,6 +98,41 @@ export const scenes = {
     [24, "Some plans cover several shapes"],
   ]),
 };
+
+export function introFusedValue(index, time) {
+  const input = [-5, 1, 4][index];
+  const loadAt = 19 + index * 8;
+  const loadedAt = loadAt + 1.5;
+  const addAt = loadAt + 2;
+  const reluAt = loadAt + 4;
+  const storeAt = loadAt + 6;
+  const storedAt = loadAt + 7.5;
+  const phase =
+    time < loadAt
+      ? "pending"
+      : time < addAt
+        ? "loading"
+        : time < reluAt
+          ? "adding"
+          : time < storeAt
+            ? "relu"
+            : time < storedAt
+              ? "storing"
+              : "done";
+  return {
+    input,
+    intermediate: input + 3,
+    output: Math.max(input + 3, 0),
+    loadAt,
+    loadedAt,
+    addAt,
+    reluAt,
+    storeAt,
+    storedAt,
+    phase,
+    written: phase === "done",
+  };
+}
 export function nextBeat(scene, time, direction) {
   return direction > 0
     ? (scene.beats.find((b) => b.at > time + 0.02)?.at ?? scene.duration)

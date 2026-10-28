@@ -10,15 +10,28 @@ import {
   Caption,
   Brace,
 } from "./Primitives";
-import { progress as p, interpolate as mix } from "./timeline.mjs";
+import {
+  progress as p,
+  interpolate as mix,
+  introFusedValue,
+} from "./timeline.mjs";
 
 export function IntroExample({ t }: { t: number }) {
   const combine = p(t, 14, 17),
     inputX = mix(140, 180, combine),
     outputX = mix(1100, 1050, combine);
+  const selected = (index: number) => {
+    const value = introFusedValue(index, t);
+    return (
+      p(t, value.loadAt, value.loadAt + 0.4) *
+      (1 - p(t, value.storedAt - 0.4, value.storedAt))
+    );
+  };
   return (
     <>
-      <Tex x={720} y={75} size={43} tex={String.raw`y_i=\max(x_i+3,0)`} />
+      <g opacity={1 - combine}>
+        <Tex x={720} y={75} size={43} tex={String.raw`y_i=\max(x_i+3,0)`} />
+      </g>
       <Label x={inputX + 105} y={230} color={C.blue} size={28}>
         Input
       </Label>
@@ -27,7 +40,7 @@ export function IntroExample({ t }: { t: number }) {
         y={280}
         values={[[-5, 1, 4]]}
         cell={70}
-        highlight={() => 0.35}
+        highlight={(_, c) => 0.35 + selected(c) * 0.55}
       />
       <g opacity={1 - combine}>
         <Fade t={t} at={1}>
@@ -103,52 +116,148 @@ export function IntroExample({ t }: { t: number }) {
           values={[[0, 4, 7]]}
           cell={70}
           color={C.green}
-          highlight={(_, c) => (c === 0 ? p(t, 8.7, 9.4) * 0.7 : 0.35)}
-          visible={(_, c) => p(t, 8.7 + c * 0.8, 9.4 + c * 0.8)}
+          highlight={(_, c) =>
+            0.35 +
+            combine *
+              p(
+                t,
+                introFusedValue(c, t).storedAt - 0.4,
+                introFusedValue(c, t).storedAt,
+              ) *
+              0.35
+          }
+          visible={(_, c) =>
+            (1 - combine) * p(t, 8.7 + c * 0.8, 9.4 + c * 0.8) +
+            combine *
+              p(
+                t,
+                introFusedValue(c, t).storedAt - 0.3,
+                introFusedValue(c, t).storedAt,
+              )
+          }
         />
       </Fade>
-      <g opacity={combine}>
-        <Node
-          x={720}
-          y={315}
-          w={440}
-          h={105}
-          tex={String.raw`\max(x_i+3,0)`}
-          color={C.green}
-          draw={combine}
-        />
+      <g opacity={combine} data-fused-kernel="true">
+        <Label x={720} y={75} color={C.green} size={39}>
+          Inside one fused kernel
+        </Label>
         <Arrow
           x1={425}
           y1={315}
-          x2={485}
+          x2={530}
           y2={315}
           color={C.blue}
           draw={combine}
         />
         <Arrow
-          x1={955}
+          x1={910}
           y1={315}
           x2={1030}
           y2={315}
           color={C.green}
-          draw={combine}
+          draw={p(t, 25, 26)}
         />
+        {[0, 1, 2].map((index) => {
+          const value = introFusedValue(index, t);
+          const load = p(t, value.loadAt, value.loadedAt),
+            store = p(t, value.storeAt, value.storedAt);
+          const labels = {
+            pending: "",
+            loading: "Load one input value",
+            adding: "Add 3 to the local value",
+            relu: "Replace negatives with zero",
+            storing: "Write the final value",
+            done: "",
+          };
+          const active =
+            p(t, value.loadAt, value.loadAt + 0.3) *
+            (1 - p(t, value.storedAt - 0.3, value.storedAt));
+          return (
+            <g key={index} data-fused-value={index}>
+              <g
+                data-stage="load"
+                opacity={
+                  p(t, value.loadAt, value.loadAt + 0.25) *
+                  (1 - p(t, value.addAt, value.addAt + 0.35))
+                }
+              >
+                <Tex
+                  x={mix(inputX + 35 + index * 70, 720, load)}
+                  y={315 - Math.sin(load * Math.PI) * 65}
+                  tex={String(value.input)}
+                  color={C.blue}
+                  size={45}
+                />
+              </g>
+              <g
+                data-stage="add"
+                opacity={
+                  p(t, value.addAt, value.addAt + 0.35) *
+                  (1 - p(t, value.reluAt, value.reluAt + 0.35))
+                }
+              >
+                <Tex
+                  x={720}
+                  y={315}
+                  tex={`${value.input}+3=${value.intermediate}`}
+                  color={C.orange}
+                  size={43}
+                />
+              </g>
+              <g
+                data-stage="relu"
+                opacity={
+                  p(t, value.reluAt, value.reluAt + 0.35) *
+                  (1 - p(t, value.storeAt, value.storeAt + 0.35))
+                }
+              >
+                <Tex
+                  x={720}
+                  y={315}
+                  tex={`\\max(${value.intermediate},0)=${value.output}`}
+                  color={C.green}
+                  size={43}
+                />
+              </g>
+              <g
+                data-stage="store"
+                opacity={
+                  p(t, value.storeAt, value.storeAt + 0.2) *
+                  (1 - p(t, value.storedAt - 0.15, value.storedAt))
+                }
+              >
+                <Tex
+                  x={mix(720, outputX + 35 + index * 70, store)}
+                  y={315 - Math.sin(store * Math.PI) * 65}
+                  tex={String(value.output)}
+                  color={C.green}
+                  size={45}
+                />
+              </g>
+              <g opacity={active}>
+                <Label x={720} y={465} size={31}>
+                  {labels[value.phase]}
+                </Label>
+              </g>
+            </g>
+          );
+        })}
+        <Fade t={t} at={43}>
+          <Tex
+            x={720}
+            y={315}
+            tex={String.raw`\max(x_i+3,0)`}
+            size={39}
+            color={C.green}
+          />
+        </Fade>
       </g>
-      <Fade t={t} at={17.5}>
-        <Tex
-          x={720}
-          y={465}
-          size={32}
-          color={C.orange}
-          tex={String.raw`[-2,4,7]\quad\text{inside the program}`}
-        />
-      </Fade>
       <Fade t={t} at={7.5} until={13}>
         <Label x={720} y={560} size={29}>
           ReLU replaces negative values with zero.
         </Label>
       </Fade>
-      <Caption t={t} at={21.5}>
+      <Caption t={t} at={44}>
         No separate temporary array.
       </Caption>
     </>
