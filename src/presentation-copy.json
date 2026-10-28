@@ -3,7 +3,7 @@
   {
     "id": 2,
     "title": "Same answer. Less work.",
-    "speakerExtra": "The extended fused sequence shows one value at a time: load it, add 3 locally, replace negatives with zero, then write the final result. The orange intermediate is a local value, not a separate array. The clip lasts 48 seconds. The central formula box from the original storyboard is omitted."
+    "speakerExtra": "The extended fused sequence shows one value at a time: load it, add 3 locally, replace negatives with zero, then write the final result. The orange intermediate is a local value, not a separate array. The value-by-value order is for teaching; GPU threads can run in parallel. The clip lasts 48 seconds. The central formula box from the original storyboard is omitted."
   },
   {
     "id": 3,
