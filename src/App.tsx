@@ -6,8 +6,7 @@ import {
   useRef,
   useState,
 } from "react";
-import content from "./content.json";
-import copy from "./presentation-copy.json";
+import { content, copy } from "./presentation";
 import { StaticVisual } from "./StaticVisual";
 import { Prose } from "./Math";
 const ScenePlayer = lazy(() => import("./Scenes"));
@@ -35,7 +34,7 @@ export default function App() {
   const lastActive = useRef(1);
   const slide = content[active - 1];
   const presenterName = settings.presenter ?? copy[0].presenter ?? "";
-  const title = (id: number) => settings.titles?.[id] || copy[id - 1].title;
+  const title = (id: number) => settings.titles?.[content[id - 1].visualId] || copy[id - 1].title;
   const navigate = useCallback((id: number, instant = false) => {
     const target = Math.max(1, Math.min(content.length, id));
     const el = document.getElementById(`slide-${target}`);
@@ -55,11 +54,11 @@ export default function App() {
   }, [settings]);
   useEffect(() => {
     const initial = Number(location.hash.replace("#slide-", ""));
-    if (initial >= 1 && initial <= 31)
+    if (initial >= 1 && initial <= content.length)
       requestAnimationFrame(() => navigate(initial, true));
     const hash = () => {
       const id = Number(location.hash.replace("#slide-", ""));
-      if (id >= 1 && id <= 31) navigate(id);
+      if (id >= 1 && id <= content.length) navigate(id);
     };
     window.addEventListener("hashchange", hash);
     return () => window.removeEventListener("hashchange", hash);
@@ -156,7 +155,7 @@ export default function App() {
       }
       if (e.key === "End") {
         e.preventDefault();
-        navigate(31);
+        navigate(content.length);
       }
       if (e.key.toLowerCase() === "n") setPanel("notes");
       if (e.key.toLowerCase() === "c") setPanel("contents");
@@ -284,7 +283,7 @@ export default function App() {
                         </div>
                       )
                     ) : (
-                      <StaticVisual id={s.id} />
+                      <StaticVisual id={s.visualId} />
                     )}
                   </div>
                 </>
@@ -304,11 +303,11 @@ export default function App() {
           </button>
           <span aria-live="polite" aria-atomic="true">
             <b>{String(active).padStart(2, "0")}</b>
-            <span> / 31</span>
+            <span> / {content.length}</span>
           </span>
           <button
             aria-label="Next slide"
-            disabled={active === 31}
+            disabled={active === content.length}
             onClick={() => navigate(active + 1)}
           >
             →
@@ -346,7 +345,7 @@ export default function App() {
                   explained.
                 </h2>
                 <p className="panel-intro">
-                  41 minutes of ideas. Four minutes for questions.
+                  45 minutes of ideas. Four minutes for questions.
                 </p>
                 <ol className="contents-list">
                   {content.map((s) => (
@@ -417,14 +416,14 @@ export default function App() {
                     Slide title
                     <input
                       value={
-                        settings.titles?.[active] ?? copy[active - 1].title
+                        settings.titles?.[slide.visualId] ?? copy[active - 1].title
                       }
                       onChange={(e) =>
                         setSettings({
                           ...settings,
                           titles: {
                             ...settings.titles,
-                            [active]: e.target.value,
+                            [slide.visualId]: e.target.value,
                           },
                         })
                       }

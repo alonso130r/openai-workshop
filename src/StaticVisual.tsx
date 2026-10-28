@@ -99,6 +99,52 @@ function ReuseSketch() {
 
 export function StaticVisual({ id }: { id: number }) {
   switch (id) {
+    case 101:
+      return (
+        <div className="single-diagram serving-diagram">
+          <Flow items={["Prompt", "Process prompt", "Generate next token"]} />
+          <svg className="decode-loop" viewBox="0 0 1000 100" role="img" aria-label="Feed each generated token back into the model and repeat">
+            <path d="M850 5v30Q850 55 825 55H620Q595 55 595 30V5" fill="none" stroke="#83c167" strokeWidth="2" />
+            <path d="m585 18 10-13 10 13" fill="none" stroke="#83c167" strokeWidth="2" />
+            <text x="720" y="90" textAnchor="middle" fill="#83c167" fontSize="24">Repeat until finished</text>
+          </svg>
+          <p className="one-line">Each output token requires another model step.</p>
+          <p className="short-note">The KV cache reuses attention data from earlier tokens.</p>
+        </div>
+      );
+    case 102:
+      return (
+        <div className="single-diagram">
+          <Flow items={["Batched requests", "Model computation", "Output tokens"]} />
+          <div className="summary-rows production-rows">
+            <div><h3>Fusion</h3><span aria-hidden="true">→</span><p>Combine surrounding tensor operations.</p></div>
+            <div><h3>Replay</h3><span aria-hidden="true">→</span><p>Reuse a prepared launch sequence.</p></div>
+          </div>
+          <p className="short-note">vLLM combines compilation with specialized attention and matrix kernels.</p>
+        </div>
+      );
+    case 103:
+      return (
+        <div className="single-diagram">
+          <Flow items={["gpt-oss weights", "vLLM", "GPU kernels"]} />
+          <div className="summary-rows production-rows">
+            <div><h3>Hopper GPU</h3><span aria-hidden="true">→</span><p>OpenAI Triton kernel for expert computation.</p></div>
+          </div>
+          <p className="one-line">Choose kernels for the model and hardware.</p>
+          <p className="short-note">Documented gpt-oss integration, August 2025. A self-hosted OpenAI model example.</p>
+        </div>
+      );
+    case 104:
+      return (
+        <div className="single-diagram">
+          <Flow items={["Compile + warm up", "Admit traffic", "Measure under load"]} />
+          <div className="two-questions">
+            <div><p>How long until the first token?</p><span>Include queueing and prompt processing.</span></div>
+            <div><p>How long between tokens?</p><span>Check slow requests as concurrency rises.</span></div>
+          </div>
+          <p className="one-line">Test changing batch sizes and prompt lengths.</p>
+        </div>
+      );
     case 3:
       return (
         <div className="plan-recap">

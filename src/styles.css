@@ -1461,6 +1461,19 @@ blockquote {
   gap: 22px;
   margin: 25px auto;
 }
+.decode-loop {
+  display: block;
+  width: min(100%, 1000px);
+  height: 100px;
+  margin: -10px auto 0;
+}
+.production-rows > div {
+  grid-template-columns: 230px 35px 1fr;
+  padding: 22px 0;
+}
+.production-rows h3 {
+  font-size: clamp(23px, 2.5vw, 36px);
+}
 .flow-node {
   border: 1px solid var(--blue);
   padding: 22px 25px;

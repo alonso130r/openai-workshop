@@ -1,0 +1,54 @@
+[
+  {
+    "id": 101,
+    "title": "Serving an LLM",
+    "timing": "33:00–34:00",
+    "purpose": "Connect repeated tensor computation to a real serving workload.",
+    "brief": "Prompt processing followed by repeated token generation.",
+    "notes": "An autoregressive LLM first processes the prompt (prefill), then repeatedly runs decode steps to generate more tokens. Each step uses cached attention keys and values, called the KV cache. The model still performs new calculations for every generated token. A serving engine batches active requests; requests arrive and finish at different times. Prefill often emphasizes matrix computation, while small-batch decode often emphasizes memory movement and launch overhead. These are workload-dependent tendencies, not guarantees. Beyond chat, repeated inference also appears in embedding services and offline document processing. Meta has publicly described prefill/decode disaggregation in its production inference stack and work integrating it with vLLM; disaggregation is a serving-system optimization distinct from compilation.",
+    "takeaway": "Token generation repeats model computation, making small per-step costs matter.",
+    "transition": "Locate the compiler inside that serving system.",
+    "scene": null,
+    "storyboard": "",
+    "links": ["https://pytorch.org/blog/disaggregated-inference-at-scale-with-pytorch-vllm/"]
+  },
+  {
+    "id": 102,
+    "title": "Compilation inside a serving engine",
+    "timing": "34:00–35:00",
+    "purpose": "Relate the earlier optimizations to vLLM inference.",
+    "brief": "A serving engine combines compiled computation with specialized kernels and launch replay.",
+    "notes": "vLLM V1 integrates torch.compile for online serving and offline inference. The compiler can fuse surrounding tensor operations while specialized attention and matrix multiplication kernels handle expensive operations. CUDA Graph replay can reduce CPU launch overhead for suitable execution paths. This is not one giant fused kernel: optimized libraries, custom kernels and compiler-generated kernels can coexist. Batching, KV-cache management and request scheduling are additional serving-engine responsibilities, not automatic benefits of torch.compile. Kernel performance alone does not establish an end-to-end serving improvement.",
+    "takeaway": "Compiled operations and specialized kernels work together inside the serving engine.",
+    "transition": "Show a concrete OpenAI model that can be served this way.",
+    "scene": null,
+    "storyboard": "",
+    "links": ["https://vllm-project.github.io/2025/08/20/torch-compile.html"]
+  },
+  {
+    "id": 103,
+    "title": "Example: serving OpenAI gpt-oss",
+    "timing": "35:00–36:00",
+    "purpose": "Provide a documented OpenAI model example without speculating about hosted systems.",
+    "brief": "Open-weight gpt-oss models served by vLLM with hardware-specific kernels.",
+    "notes": "OpenAI released gpt-oss-20b and gpt-oss-120b as open-weight models. vLLM documents serving both models. In its August 2025 integration, vLLM used a Triton matmul_ogs kernel implemented by the OpenAI Triton team for MXFP4 mixture-of-experts computation on Hopper GPUs such as H100 and H200. That kernel unpacks low-precision weights during computation; this connects to avoiding unnecessary intermediate memory traffic. Blackwell used a different specialized MoE kernel from NVIDIA through FlashInfer. The exact backend depends on hardware and software version. Low-precision storage is a separate optimization from compilation, and this example does not imply that arbitrary quantization preserves identical numerical outputs. This is a public self-hosted deployment example, not evidence about the private serving architecture behind ChatGPT or OpenAI's hosted API models.",
+    "takeaway": "The execution plan depends on both the model and the target GPU.",
+    "transition": "Explain what a production deployment must verify beyond a kernel benchmark.",
+    "scene": null,
+    "storyboard": "",
+    "links": ["https://vllm-project.github.io/2025/08/05/gpt-oss.html", "https://openai.com/index/introducing-gpt-oss/"]
+  },
+  {
+    "id": 104,
+    "title": "Measuring a production deployment",
+    "timing": "36:00–37:00",
+    "purpose": "Summarize the practical tradeoffs when serving real traffic.",
+    "brief": "Prepare compilation before traffic, cover changing workloads, and measure user-facing performance.",
+    "notes": "Compilation can add startup cost. vLLM documents compiling during startup and caching artifacts; cache reuse requires compatible configurations and environments. Prepare and warm the intended execution paths before admitting traffic. Batch sizes and prompt lengths vary, so test representative workloads and the chosen dynamic-shape or bucketing policy. Measure time to first token and time between output tokens, including tail latency under concurrent load. Report throughput at the required latency target, alongside memory use and startup time. Keep model weights and precision fixed when isolating compilation benefits, and verify correctness. A faster individual kernel can fail to improve the service if scheduling, communication or memory capacity is the limiting factor.",
+    "takeaway": "A useful speedup improves the service under representative traffic.",
+    "transition": "Try compilation on an existing PyTorch model.",
+    "scene": null,
+    "storyboard": "",
+    "links": ["https://vllm-project.github.io/2025/08/20/torch-compile.html", "https://pytorch.org/blog/disaggregated-inference-at-scale-with-pytorch-vllm/"]
+  }
+]
