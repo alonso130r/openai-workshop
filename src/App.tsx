@@ -258,7 +258,7 @@ export default function App() {
                     </p>
                   )}
                   <p className="co-sponsor">
-                    Co-sponsored by the OpenAI student organization at Waterloo
+                    Co-sponsored by the OpenAI Student Collective at Waterloo
                   </p>
                   <p className="start-hint">Scroll or press ↓ to begin</p>
                 </>
