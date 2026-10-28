@@ -1,0 +1,160 @@
+{
+  "guideSha256": "2a0855cfa18a80fa2dcacc5b75187e7a2901b143444e8ef9121a517572d27bae",
+  "slides": [
+    {
+      "id": 1,
+      "title": "Your AI Is Doing Extra Work",
+      "scene": null
+    },
+    {
+      "id": 2,
+      "title": "One result, two ways to compute it",
+      "scene": "IntroExample"
+    },
+    {
+      "id": 3,
+      "title": "Who finds the better execution plan?",
+      "scene": null
+    },
+    {
+      "id": 4,
+      "title": "A compiler translates a program",
+      "scene": null
+    },
+    {
+      "id": 5,
+      "title": "A structured representation makes changes possible",
+      "scene": "ClassicCompiler"
+    },
+    {
+      "id": 6,
+      "title": "Compilation can happen before or during use",
+      "scene": null
+    },
+    {
+      "id": 7,
+      "title": "ML changes the unit of work",
+      "scene": null
+    },
+    {
+      "id": 8,
+      "title": "The GPU changes what costs time",
+      "scene": "Memory"
+    },
+    {
+      "id": 9,
+      "title": "An ML compiler plans tensor execution",
+      "scene": "Compiler"
+    },
+    {
+      "id": 10,
+      "title": "Fusion: the avoidable round trip",
+      "scene": "Fusion"
+    },
+    {
+      "id": 11,
+      "title": "Fusion: what the generated kernel does",
+      "scene": null
+    },
+    {
+      "id": 12,
+      "title": "Fusion: counting the saved traffic",
+      "scene": null
+    },
+    {
+      "id": 13,
+      "title": "Tiling: several outputs need the same inputs",
+      "scene": "DotProduct"
+    },
+    {
+      "id": 14,
+      "title": "Tiling: reuse a block of loaded inputs",
+      "scene": "Tiling"
+    },
+    {
+      "id": 15,
+      "title": "Tiling: what the kernel schedules",
+      "scene": null
+    },
+    {
+      "id": 16,
+      "title": "Replay: setup work can leave the GPU idle",
+      "scene": "Replay"
+    },
+    {
+      "id": 17,
+      "title": "Replay: record once, launch again",
+      "scene": null
+    },
+    {
+      "id": 18,
+      "title": "Each optimization addresses a different cost",
+      "scene": null
+    },
+    {
+      "id": 19,
+      "title": "Specialization needs assumptions",
+      "scene": "Guards"
+    },
+    {
+      "id": 20,
+      "title": "Generality and specialization have a tradeoff",
+      "scene": null
+    },
+    {
+      "id": 21,
+      "title": "A valid optimization can still lose",
+      "scene": null
+    },
+    {
+      "id": 22,
+      "title": "A general compiler needs reusable rules",
+      "scene": null
+    },
+    {
+      "id": 23,
+      "title": "A first PyTorch experiment",
+      "scene": null
+    },
+    {
+      "id": 24,
+      "title": "A useful request to a coding agent",
+      "scene": null
+    },
+    {
+      "id": 25,
+      "title": "A small debugging toolkit",
+      "scene": null
+    },
+    {
+      "id": 26,
+      "title": "A comparison you can trust",
+      "scene": null
+    },
+    {
+      "id": 27,
+      "title": "A practical learning path",
+      "scene": null
+    },
+    {
+      "id": 28,
+      "title": "Further depth",
+      "scene": null
+    },
+    {
+      "id": 29,
+      "title": "Questions",
+      "scene": null
+    },
+    {
+      "id": 30,
+      "title": "Backup: compiler graphs and CUDA Graphs",
+      "scene": null
+    },
+    {
+      "id": 31,
+      "title": "Backup: the compiler vocabulary",
+      "scene": null
+    }
+  ]
+}

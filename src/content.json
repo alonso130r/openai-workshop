@@ -1,0 +1,462 @@
+[
+  {
+    "id": 1,
+    "title": "Your AI Is Doing Extra Work",
+    "timing": "0:00–0:45",
+    "purpose": "Set the scope and make the talk approachable.",
+    "brief": "Minimal title, subtitle, presenter name, and affiliation.",
+    "notes": "Introduce the talk as a tour of execution rather than model training. We will start with a tiny calculation, take a short detour into compilers, then explain the optimizations and how to use them. No GPU or compiler background is required. For experienced attendees, focus on the implementation constraints and measurement choices. Mention the OpenAI student organization at Waterloo as event co-sponsor, without implying knowledge of OpenAI’s internal stack.",
+    "takeaway": "The talk explains how execution choices affect the cost of running an unchanged model.",
+    "transition": "Start with a tiny operation that everyone can follow.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 2,
+    "title": "One result, two ways to compute it",
+    "timing": "0:45–2:15",
+    "purpose": "Motivate compilation with a concrete calculation before introducing compiler terminology.",
+    "brief": "A small numerical example, followed by separate and combined execution plans.",
+    "notes": "Give the concrete task: this is one small operation inside a model that might classify images or generate text. A tensor is simply an array of numbers. Starting with \\([-5, 1, 4]\\), adding 3 gives \\([-2, 4, 7]\\), and ReLU gives \\([0, 4, 7]\\). Both execution plans calculate that same result. Ask what work disappears in the combined plan. The missing temporary is the motivation for a compiler. We have not changed weights or trained a different model. ReLU is a teaching example, not a claim about the activation in every LLM.",
+    "takeaway": "The same calculation can avoid an intermediate tensor.",
+    "transition": "Who should find these better execution plans across a whole model?",
+    "scene": "IntroExample",
+    "storyboard": "1. Show three boxes: input \\([-5,1,4]\\), “Add 3,” and “ReLU,” connected in execution order.\n2. Reveal the intermediate \\([-2,4,7]\\), then the final output \\([0,4,7]\\). Give the audience time to follow the arithmetic.\n3. Remove that plan. Reveal input, one combined “Add 3 and apply ReLU” box, and output.\n4. End on “Same output” with \\([0,4,7]\\). Point out that an intermediate value still exists locally, but a separate temporary tensor is unnecessary.",
+    "links": []
+  },
+  {
+    "id": 3,
+    "title": "Who finds the better execution plan?",
+    "timing": "2:15–4:00",
+    "purpose": "Turn the small example into a reason to use an automated tool.",
+    "brief": "One main question with two short supporting statements.",
+    "notes": "Explain why manually rewriting our three-number example does not scale to a model with many layers, different shapes, and multiple hardware targets. The opportunity is broader than deleting arithmetic: movement and setup also cost time. A compiler is a tool that derives an executable plan from a program. Ask whether a mathematically correct implementation is necessarily efficient. It is not. This deck uses schematic animations and analytical traffic counts. No numerical GPU speedups are claimed.",
+    "takeaway": "Manually optimizing every model, shape, and device is impractical.",
+    "transition": "Take a short detour into what a compiler is.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 4,
+    "title": "A compiler translates a program",
+    "timing": "4:00–5:15",
+    "purpose": "Give a working definition of compilation.",
+    "brief": "A large definition, followed by the responsibilities of checking, representation, and translation.",
+    "notes": "A programmer writes at a convenient level, while a processor executes instructions. A compiler bridges those levels. Explain parsing as recognizing structure, semantic checking as validating meaning, and code generation as producing a target program. Some compilers emit another language or bytecode rather than machine code directly. Optimization is an optional part of this transformation, not the definition of compilation. The example next is a simplified pipeline. Source: https://llvm.org/docs/LangRef.html",
+    "takeaway": "A compiler translates a program while preserving its required behavior.",
+    "transition": "Show the structured representation that makes transformation possible.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://llvm.org/docs/LangRef.html"
+    ]
+  },
+  {
+    "id": 5,
+    "title": "A structured representation makes changes possible",
+    "timing": "5:15–6:45",
+    "purpose": "Explain how a compiler can inspect and transform a program.",
+    "brief": "A source/IR/target pipeline and one constant-folding example.",
+    "notes": "Play the pipeline. Source text becomes a representation a compiler can analyze. Use the example of a fixed expression that can be calculated during compilation. Explain that IR is like an explicit worksheet of operations and relationships, not a new neural network. An optimization pass is one transformation over that worksheet. Lowering moves toward forms closer to the target machine. The exact stages vary across compilers. General compilers can optimize loops and vectors too. Source: https://llvm.org/docs/Passes.html",
+    "takeaway": "A structured representation exposes operations that a compiler can transform.",
+    "transition": "Explain when this translation can happen.",
+    "scene": "ClassicCompiler",
+    "storyboard": "1. Reveal “Source program,” “Structured IR,” and “Target program” with arrows between them.\n2. Label the first translation “Recognize structure” and the second “Generate instructions.”\n3. Reveal a fixed expression, \\(2+3\\), beneath the pipeline.\n4. Transform the expression into the statement that the compiler can replace it with \\(5\\). Use the change to define an optimization pass.",
+    "links": [
+      "https://llvm.org/docs/Passes.html"
+    ]
+  },
+  {
+    "id": 6,
+    "title": "Compilation can happen before or during use",
+    "timing": "6:45–8:00",
+    "purpose": "Prepare the audience for runtime compilation and its first-call cost.",
+    "brief": "A side-by-side comparison of ahead-of-time and just-in-time compilation.",
+    "notes": "Contrast the familiar build step for a native application with a runtime that compiles after seeing actual inputs. Neither is inherently faster. Ahead-of-time systems can also specialize, and just-in-time systems can retain general behavior. PyTorch’s common torch.compile workflow uses runtime capture and compilation, so the first calls can be expensive. This explains why compilation cost will reappear later. Source: https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html",
+    "takeaway": "When compilation happens affects both available information and when its cost appears.",
+    "transition": "Now ask what changes when the program is a neural network.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html"
+    ]
+  },
+  {
+    "id": 7,
+    "title": "ML changes the unit of work",
+    "timing": "8:00–9:30",
+    "purpose": "Explain what an ML compiler emphasizes without presenting it as an unrelated technology.",
+    "brief": "A comparison of general program structure with tensor-oriented numerical work.",
+    "notes": "Qualify the comparison: general applications can contain numerical loops, and ML can contain irregular sparse work and data-dependent control flow. The difference is emphasis, not a hard boundary. An ML compiler can reason about whole tensor operations before lowering to individual arithmetic instructions. A reduction combines values, such as a sum. Matrix multiplication mixes features using learned weights. Training compilers also handle gradients, but this talk focuses on inference. Source: https://docs.pytorch.org/assets/pytorch2-2.pdf",
+    "takeaway": "ML compilers can optimize at the level of whole tensor operations.",
+    "transition": "The hardware also changes which costs deserve attention.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/assets/pytorch2-2.pdf"
+    ]
+  },
+  {
+    "id": 8,
+    "title": "The GPU changes what costs time",
+    "timing": "9:30–11:15",
+    "purpose": "Establish the hardware cost model needed for the optimization examples.",
+    "brief": "Device memory, a smaller on-chip working set, and compute.",
+    "notes": "Define a GPU kernel as one program launched to perform work on the GPU. Distinguish device memory from CPU memory. On-chip registers, shared memory, and caches have much less capacity than device memory and support reuse. Explain why moving numbers can dominate arithmetic. This is a simplified hierarchy, not a literal diagram of all hardware paths. Other workloads are compute limited, and tiny kernels can be dispatch limited. Source: https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html",
+    "takeaway": "Fetching and storing values can cost more time than the arithmetic on them.",
+    "transition": "Connect those costs to how an ML compiler plans operations.",
+    "scene": "Memory",
+    "storyboard": "1. Reveal a large “Device memory” region, a smaller “On-chip storage” region, and a “Compute” region.\n2. Draw the data path from device memory through the working storage to compute.\n3. Move several small squares along that path, one after another, so data movement is visible.\n4. End with the capacity labels and the simplified hierarchy visible. Explain that the squares represent data, and their travel times are illustrative.",
+    "links": [
+      "https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html"
+    ]
+  },
+  {
+    "id": 9,
+    "title": "An ML compiler plans tensor execution",
+    "timing": "11:15–13:00",
+    "purpose": "Connect familiar compiler stages to the PyTorch execution stack.",
+    "brief": "An operation graph above the kernels or library calls that implement it.",
+    "notes": "Show the running example as an operation graph. In a typical PyTorch path, TorchDynamo captures supported tensor work as an FX graph and guards assumptions. TorchInductor optimizes and lowers it, generating code or choosing existing libraries. A backend is the part that targets execution. Register allocation and machine instructions still matter, but deleting one scalar instruction can matter less than eliminating a full tensor round trip. Numerical accuracy remains a correctness constraint. Compilation does not automatically authorize lower precision. Sources: https://docs.pytorch.org/assets/pytorch2-2.pdf and https://docs.pytorch.org/docs/stable/generated/torch.compile.html",
+    "takeaway": "An ML compiler chooses how connected tensor operations execute.",
+    "transition": "Work through the first optimization in detail.",
+    "scene": "Compiler",
+    "storyboard": "1. Reveal connected “Matmul,” “Bias,” “ReLU,” and “Output” operation boxes.\n2. Label this the captured operation graph. Explain dependencies before naming a backend.\n3. Reveal a “Library or generated matmul” implementation below the matrix multiplication.\n4. Reveal a “Fused elementwise kernel” implementation below the elementwise part. Explain that this illustrates one possible lowering, not a universal kernel arrangement.",
+    "links": [
+      "https://docs.pytorch.org/assets/pytorch2-2.pdf",
+      "https://docs.pytorch.org/docs/stable/generated/torch.compile.html"
+    ]
+  },
+  {
+    "id": 10,
+    "title": "Fusion: the avoidable round trip",
+    "timing": "13:00–15:00",
+    "purpose": "Explain why fusion is useful before discussing its implementation.",
+    "brief": "Separate bias and ReLU kernels, then a combined kernel.",
+    "notes": "Revisit the intro at tensor scale. Without fusion, one kernel reads the input, adds bias, and stores a temporary. Another reads that temporary and applies ReLU. The motivation is removing that store and reload. Ask whether an external consumer needs the intermediate. Fusion can keep it inside one program when dependencies and resources permit. A real backend might already fuse some cases or use a library epilogue. Explain an epilogue as work performed on a matrix multiplication result before storing it. Source: https://docs.pytorch.org/docs/stable/generated/torch.compile.html",
+    "takeaway": "A temporary tensor can create an avoidable write and read.",
+    "transition": "Open the fused kernel and explain its execution.",
+    "scene": "Fusion",
+    "storyboard": "1. Begin with “Separate kernels.” Show input, bias addition, temporary storage, ReLU, and output.\n2. Move a data marker through the stages. Pause verbally at the temporary to identify its store and reload. The clip also contains the independent example \\(-2+3=1\\).\n3. Replace that plan with “One fused kernel”: input, combined bias-plus-ReLU work, and output.\n4. Move a marker through the shorter execution plan and remove it before the final hold.\n5. End with the statement that the temporary stays local to the kernel. The arithmetic is unchanged; the temporary tensor traffic changes.",
+    "links": [
+      "https://docs.pytorch.org/docs/stable/generated/torch.compile.html"
+    ]
+  },
+  {
+    "id": 11,
+    "title": "Fusion: what the generated kernel does",
+    "timing": "15:00–16:15",
+    "purpose": "Make fusion concrete enough that a beginner can describe the generated program.",
+    "brief": "Three steps: load input values, calculate locally, then store the final result.",
+    "notes": "Go through the implementation in execution order. Threads split the tensor into blocks. A program computes offsets, loads input and bias, computes max(input plus bias, zero), and stores output. Edge threads mask invalid positions. A register holds a local working value. The graph transformation recognizes a compatible producer-consumer pattern and schedules both together. Not every operation pair can share the same execution scheme, and extra register pressure can reduce performance. Sources: https://docs.pytorch.org/docs/stable/generated/torch.compile.html and https://triton-lang.org/main/getting-started/tutorials/01-vector-add.html",
+    "takeaway": "Combining operations keeps an intermediate value local to the kernel.",
+    "transition": "Count which memory accesses disappeared.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/stable/generated/torch.compile.html",
+      "https://triton-lang.org/main/getting-started/tutorials/01-vector-add.html"
+    ]
+  },
+  {
+    "id": 12,
+    "title": "Fusion: counting the saved traffic",
+    "timing": "16:15–17:30",
+    "purpose": "Quantify the benefit without promising an unmeasured speedup.",
+    "brief": "Two execution plans with their logical reads and writes.",
+    "notes": "Derive the count from four-byte FP32 elements. Four accesses per element versus two yields 16N versus 8N bytes. State the level of abstraction: these are logical global-memory accesses, not measured physical HBM transactions. Caches affect traffic, and latency also includes launch and compute. Therefore this is not a promised twofold speedup. Ask why the full model might improve much less. This is an analytical example.",
+    "takeaway": "Removing logical memory traffic creates an opportunity for speedup, not a guarantee.",
+    "transition": "The next opportunity is reusing values within a calculation.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 13,
+    "title": "Tiling: several outputs need the same inputs",
+    "timing": "17:30–19:30",
+    "purpose": "Teach just enough matrix multiplication to make input reuse visible.",
+    "brief": "Two small matrices, their product, and highlighted rows and columns.",
+    "notes": "Use a two-by-two matrix multiplication to establish the arithmetic. The first output is one times five plus two times seven, giving nineteen. The next output uses the same row with another column, giving twenty-two. Show that values one and two participate again. Tiling exploits this overlap instead of repeatedly fetching each value independently. The arithmetic example is exact integer arithmetic for teaching. Real kernels use floating-point formats. Source: https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html",
+    "takeaway": "Multiple output values depend on overlapping input values.",
+    "transition": "Scale the shared-input observation into blocks.",
+    "scene": "DotProduct",
+    "storyboard": "1. Show \\(A=\\begin{bmatrix}1&2\\3&4\\end{bmatrix}\\), \\(B=\\begin{bmatrix}5&6\\7&8\\end{bmatrix}\\), and \\(AB=\\begin{bmatrix}19&22\\43&50\\end{bmatrix}\\).\n2. Highlight the first row of \\(A\\), the first column of \\(B\\), and the first output entry.\n3. Reveal \\(1\\times5+2\\times7=19\\). Explain row-by-column multiplication.\n4. Keep the row highlighted, switch the highlight to the second column, and reveal \\(1\\times6+2\\times8=22\\).\n5. End on “The same row contributes again.” The persistent row highlight is the key visual evidence of reuse.",
+    "links": [
+      "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html"
+    ]
+  },
+  {
+    "id": 14,
+    "title": "Tiling: reuse a block of loaded inputs",
+    "timing": "19:30–21:30",
+    "purpose": "Explain tiling as a strategy for exploiting that shared input.",
+    "brief": "Larger matrix grids with input blocks feeding a highlighted output tile.",
+    "notes": "Map the numeric example onto a larger matrix. One program owns an output tile. For each chunk of the reduction dimension, it loads an A block and a B block, multiplies them, and adds to local accumulators. The accumulators hold partial output sums until all chunks finish. Fast storage allows a loaded input to serve several outputs. This is a blocked algorithm, not a literal tensor-core instruction trace. Simple kernels also benefit from hardware caches. Source: https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html",
+    "takeaway": "Loaded input blocks can contribute to several outputs before leaving fast storage.",
+    "transition": "Describe the blocked algorithm the kernel actually executes.",
+    "scene": "Tiling",
+    "storyboard": "1. Show three \\(4\\times4\\) grids for \\(A\\), \\(B\\), and the output.\n2. Highlight an input block from each matrix and the \\(2\\times2\\) output tile they help compute.\n3. Move visual copies of the highlighted input blocks toward the output to represent one partial update.\n4. Advance to the next chunk along the reduction dimension. Highlight the next corresponding input blocks and update the same output tile again.\n5. End with the output tile filled and the message that partial results accumulate before the final output write. The moving blocks represent contribution, not overwriting the output with input values.",
+    "links": [
+      "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html"
+    ]
+  },
+  {
+    "id": 15,
+    "title": "Tiling: what the kernel schedules",
+    "timing": "21:30–23:15",
+    "purpose": "Explain the implementation and the main tradeoff behind tile selection.",
+    "brief": "Output ownership, chunked accumulation, and a final store.",
+    "notes": "Connect motivation to implementation: choose block dimensions, compute input pointers using strides, load with masks near edges, perform dot products, then store the output tile. A stride tells how far to move through memory to reach a neighbor. Mapping values to threads and tensor-core instructions depends on hardware. Larger tiles can improve reuse but consume more registers or shared memory and leave fewer independent programs. Compilers choose heuristically, invoke a tuned library, or benchmark candidate schedules through autotuning. Source: https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html",
+    "takeaway": "A tile is a scheduling choice with storage and parallelism consequences.",
+    "transition": "Look beyond the kernel to how the host submits work.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html"
+    ]
+  },
+  {
+    "id": 16,
+    "title": "Replay: setup work can leave the GPU idle",
+    "timing": "23:15–25:00",
+    "purpose": "Introduce host launch overhead as a different source of wasted time.",
+    "brief": "Two schematic kernel timelines with equal kernel widths but different gaps.",
+    "notes": "Introduce the host CPU as the component submitting GPU work. If kernels are short, repeated submission can matter. The top row has illustrative gaps between launches. The lower row preserves kernel widths and reduces the gaps. This is a schematic, not a profiler trace. Real submissions can overlap GPU work. CUDA Graph replay is a runtime mechanism a compiler stack can use. It is distinct from a compiler operation graph and from kernel fusion. Source: https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html",
+    "takeaway": "Fast kernels can still wait for the host to submit work.",
+    "transition": "Explain the recording and replay mechanism.",
+    "scene": "Replay",
+    "storyboard": "1. Draw a top timeline labeled “Repeated launches” and a lower timeline labeled “Graph replay.”\n2. Reveal the same four kernels in the top row with visible spaces between them.\n3. Reveal four kernels of the same widths in the lower row with smaller spaces.\n4. Hold both rows together. The point is the reduced submission gaps, not faster arithmetic inside each rectangle.\n5. Keep “Schematic timeline” visible. Do not present the drawn distances as measured timing or suggest that all dispatch gaps disappear.",
+    "links": [
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html"
+    ]
+  },
+  {
+    "id": 17,
+    "title": "Replay: record once, launch again",
+    "timing": "25:00–26:30",
+    "purpose": "Explain what graph capture and replay actually do.",
+    "brief": "Preparation, capture, and replay as an execution sequence.",
+    "notes": "Explain implementation without implying replay caches the output. Inputs can change and kernels recompute outputs on each replay. Captured work has constraints involving memory addresses, shapes, and operations. PyTorch wrappers manage some buffer and allocation issues. New shapes may require new recordings. A compiler can use this mechanism after lowering the operations. Eligible GPU workloads may benefit, while large compute-heavy kernels can see little improvement. Source: https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html",
+    "takeaway": "Replay reuses a prepared execution plan, while the kernels still calculate new outputs.",
+    "transition": "Compare the costs addressed by the different mechanisms.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html"
+    ]
+  },
+  {
+    "id": 18,
+    "title": "Each optimization addresses a different cost",
+    "timing": "26:30–28:00",
+    "purpose": "Consolidate the optimizations by the cost each addresses.",
+    "brief": "Inside-kernel and around-execution comparisons.",
+    "notes": "Ask the audience to identify which cost dominates three situations: a large intermediate tensor, repeated input reads, and gaps between tiny kernels. Treat each answer as a profiling hypothesis, not proof. All these transformations can interact. A library can already embody tiling and fusion, so torch.compile need not generate every kernel itself. General-purpose compilers also do related transformations, but tensor structure and accelerator execution make these particularly valuable here.",
+    "takeaway": "Choose an optimization by identifying the bottleneck it can remove.",
+    "transition": "Ask what assumptions make these plans possible.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 19,
+    "title": "Specialization needs assumptions",
+    "timing": "28:00–29:30",
+    "purpose": "Show why a compiled execution plan needs checks on its assumptions.",
+    "brief": "Repeated same-shape calls reuse a plan, then a changed shape takes a different path.",
+    "notes": "Explain the example as a static-shape-specialized plan. Repeated input shapes reuse it. A new shape violates an assumption, which can lead to another compiled variant or a more general dynamic program. Guards also cover dtype, device, strides, and relevant program state. Avoid saying every shape change recompiles or recompilation always happens rather than fallback. This is execution generality, not a model’s ability to generalize to unseen data. Source: https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/",
+    "takeaway": "Specialization is valid only while its assumptions hold.",
+    "transition": "Compare narrow specialization with broader input support.",
+    "scene": "Guards",
+    "storyboard": "1. Show a request with shape \\(128\\times256\\), a guard check, and a reusable compiled plan A.\n2. Move two request markers through the valid path to show repeated reuse.\n3. Change the request shape to \\(192\\times256\\) and change the status to indicate a failed static-shape assumption.\n4. Dim plan A and reveal a downward branch to compiling plan B.\n5. End with the reminder that dynamic shapes can sometimes reuse one program. This is one possible static-specialization behavior, not a claim that every changed shape recompiles.",
+    "links": [
+      "https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/"
+    ]
+  },
+  {
+    "id": 20,
+    "title": "Generality and specialization have a tradeoff",
+    "timing": "29:30–31:15",
+    "purpose": "Explain the performance-versus-flexibility tradeoff.",
+    "brief": "A specialized plan compared with a more general plan.",
+    "notes": "Use a voice assistant with different utterance lengths as a concrete workload. Explain dynamic shapes as a single program handling a range of dimensions, potentially with constraints. Shape bucketing groups lengths and pads to chosen sizes, trading extra arithmetic for fewer variants. Neither always wins, and a general program can perform as well as a specialized one. The compiler must preserve behavior across its supported input domain. Graph breaks split compilation around unsupported behavior, limiting cross-boundary optimization. Sources: https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html and https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/",
+    "takeaway": "Supporting a broader input domain can require different implementation choices.",
+    "transition": "Explain why a valid plan can still perform poorly.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html",
+      "https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/"
+    ]
+  },
+  {
+    "id": 21,
+    "title": "A valid optimization can still lose",
+    "timing": "31:15–32:00",
+    "purpose": "Explain why a correct compiler transformation may fail to improve the workload.",
+    "brief": "Compilation overhead compared with implementation and search limits.",
+    "notes": "Explain that compilers use heuristics and finite search. They cannot assume arbitrary operations are interchangeable, and real-number identities need care in floating-point arithmetic. For a rare request, compiling a new variant can cost more than it saves. A larger fusion can reduce occupancy or spill local values to memory. A kernel speedup has limited end-to-end impact if it covers only a small fraction of runtime. Give the verbal example of halving one half of the runtime yielding a total of three quarters, about 1.33 times faster. Sources: https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html and https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+    "takeaway": "The full workload decides whether an optimization pays off.",
+    "transition": "Explain what a workload expert can know that a reusable compiler does not.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html",
+      "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/"
+    ]
+  },
+  {
+    "id": 22,
+    "title": "A general compiler needs reusable rules",
+    "timing": "32:00–33:00",
+    "purpose": "Explain why a general compiler can miss an opportunity that a domain expert sees.",
+    "brief": "Reusable implementation rules compared with execution specialized to extra fixed structure.",
+    "notes": "Connect the limitation to a design choice. A reusable compiler handles many operators, shapes, and hardware targets. A person may know that a graph topology is fixed or that a sparsity pattern never changes. A kernel specialized to that fact can skip work that a general implementation must retain. It is only correct over its stated input domain and is not automatically faster. You can expose supported invariants or choose a specialized operator so the compiler can benefit, but should not silently remove guards. This is program generality, not statistical model generalization. Sources: https://docs.pytorch.org/assets/pytorch2-2.pdf and https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/",
+    "takeaway": "A specialized implementation can exploit knowledge that a compiler cannot establish automatically.",
+    "transition": "Return to the audience: how can they try this today?",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/assets/pytorch2-2.pdf",
+      "https://docs.pytorch.org/devlogs/dynamo/2025-06-04-inside-torch-compile-guards/"
+    ]
+  },
+  {
+    "id": 23,
+    "title": "A first PyTorch experiment",
+    "timing": "33:00–34:45",
+    "purpose": "Give attendees a small, usable entry point in PyTorch.",
+    "brief": "An existing model, an eager reference, and a callable returned by torch.compile.",
+    "notes": "Assume an existing torch import, a loaded model, and example_input on a supported device. eval changes behaviors such as dropout and batch normalization. inference_mode disables autograd bookkeeping for inference. torch.compile returns a callable and commonly compiles lazily on first use. Neither eval nor inference_mode alone performs compilation. Keep weights, input shapes, device, and dtype fixed for the first comparison. Use torch.testing.assert_close with tolerances suited to the workload, and task-level checks when relevant. No speedup is guaranteed and backend availability depends on platform. Source: https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html",
+    "takeaway": "Start with the supported high-level API and preserve a reference for correctness checks.",
+    "transition": "Show how to ask a coding agent to run the experiment well.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html"
+    ]
+  },
+  {
+    "id": 24,
+    "title": "A useful request to a coding agent",
+    "timing": "34:45–36:00",
+    "purpose": "Show how to delegate a meaningful optimization experiment to a coding agent.",
+    "brief": "One concrete agent prompt and a requirement for evidence.",
+    "notes": "Explain why this prompt is more useful than asking to make the model faster. It defines scope and correctness, asks the agent to locate the hot path, and requires representative workloads. Tell the agent to retain an eager path for comparison and inspect graph-break or recompile logs if results disappoint. Require the environment and timing boundary in the report. A profiler trace or generated-kernel inspection helps connect an observed speedup to the mechanisms in this talk. Lower precision, quantization, and architecture changes are separate experiments that need explicit evaluation.",
+    "takeaway": "An agent needs a scope, correctness constraints, and a measurement plan.",
+    "transition": "Introduce the diagnostics needed when the experiment disappoints.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 25,
+    "title": "A small debugging toolkit",
+    "timing": "36:00–37:30",
+    "purpose": "Introduce a limited set of diagnostics and options.",
+    "brief": "Graph-break and recompilation diagnostics alongside workload-specific compiler options.",
+    "notes": "Present these as diagnostics and experiments, not a universal recipe. TORCH_LOGS is an environment variable set before running the Python process. fullgraph=True requires capture as one graph and raises when a graph break prevents it. It does not promise one kernel or maximum performance. dynamic=True attempts more dynamic handling and does not guarantee one program for arbitrary input or no guards. mode=\"reduce-overhead\" can use CUDA Graphs for eligible workloads. mode=\"max-autotune\" spends additional time selecting implementations. Both depend on backend and platform support. Sources: <https://docs.pytorch.org/docs/stable/generated/torch.compile.html> and <https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.observability.html>",
+    "takeaway": "Investigate why compilation helps or loses before changing settings.",
+    "transition": "Finish the practical section with a fair measurement procedure.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/stable/generated/torch.compile.html",
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/compile/programming_model.observability.html"
+    ]
+  },
+  {
+    "id": 26,
+    "title": "A comparison you can trust",
+    "timing": "37:30–39:00",
+    "purpose": "Make performance evaluation part of using the compiler.",
+    "brief": "Correctness checks, cold/warm measurement, and representative inputs.",
+    "notes": "Use GPU events for device execution or explicit synchronization around host wall-clock timing, according to the desired boundary. Warm both implementations and run enough repetitions to see variation. Compile overhead, caching, and memory allocation can affect early calls. Benchmark representative shape changes, not just the first fixed shape. Keep the same weights and precision. Peak tensor allocation is not the same as all memory reserved by the runtime. If compilation loses, report that result rather than silently changing the task. Sources: <https://docs.pytorch.org/docs/stable/notes/cuda.html#asynchronous-execution> and <https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html>",
+    "takeaway": "A trustworthy result includes correctness and the real workload, not just a favorable timing.",
+    "transition": "Give attendees an ordered set of resources.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/stable/notes/cuda.html#asynchronous-execution",
+      "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html"
+    ]
+  },
+  {
+    "id": 27,
+    "title": "A practical learning path",
+    "timing": "39:00–40:00",
+    "purpose": "Give beginners an ordered next step.",
+    "brief": "Clickable links to the introductory tutorial, troubleshooting documentation, and Triton tutorials.",
+    "notes": "Give beginners an ordered path. First run the introductory example and compare eager with compiled execution. Next investigate one graph break and one recompile. Then use the Triton vector-add tutorial before the matrix-multiplication tutorial. You do not need to write kernels to benefit from compilation. Additional first exercise: find the same bias-plus-activation example in a profiler. URLs on these slides are clickable. Source: <https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html> and <https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html>",
+    "takeaway": "Attendees can start by using compilation, then investigate one concrete behavior.",
+    "transition": "Offer deeper paths for people who want to understand the implementation.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html",
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_troubleshooting.html",
+      "https://triton-lang.org/main/getting-started/tutorials/03-matrix-multiplication.html"
+    ]
+  },
+  {
+    "id": 28,
+    "title": "Further depth",
+    "timing": "40:00–41:00",
+    "purpose": "Offer deeper paths without making them prerequisites.",
+    "brief": "Clickable links organized by compiler internals, GPU execution, and replay.",
+    "notes": "Recommend the compiler paper to understand capture and lowering, the CUDA guide to understand resource constraints, and CUDA Graph Trees to understand replay and memory interactions. These are complementary paths rather than prerequisites for using torch.compile. Close by returning to the intro: the same output can come from different execution plans. A compiler makes those choices automatically, within the assumptions and limits we have examined.",
+    "takeaway": "Different resources explain different levels of the execution stack.",
+    "transition": "Return to the opening example and invite questions.",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/assets/pytorch2-2.pdf",
+      "https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/",
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html"
+    ]
+  },
+  {
+    "id": 29,
+    "title": "Questions",
+    "timing": "41:00–45:00",
+    "purpose": "Invite questions that connect the ideas to an actual workload.",
+    "brief": "One closing question and three prompts.",
+    "notes": "Reserve four minutes for questions. Possible topics: Why not fuse the entire model? Does changing the input value require recompilation? How do dynamic shapes differ from shape bucketing? Is this useful on CPUs? What does the coding agent need to measure? Separate compiler optimization from model changes and distinguish compiler graphs from CUDA Graphs.",
+    "takeaway": "Identify what repeats, what changes, and how to measure the outcome.",
+    "transition": "Use the backup slides only if a question calls for them.",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  },
+  {
+    "id": 30,
+    "title": "Backup: compiler graphs and CUDA Graphs",
+    "timing": "Backup, outside the scheduled 45 minutes",
+    "purpose": "Resolve a common naming confusion when it arises during questions.",
+    "brief": "Compiler operation graphs compared with CUDA execution graphs.",
+    "notes": "A single compiler graph may lower to many GPU kernels. A CUDA Graph can contain several kernels and other CUDA operations. The concepts exist at different levels. Source: <https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html>",
+    "takeaway": "These graphs describe different levels of the system.",
+    "transition": "",
+    "scene": null,
+    "storyboard": "",
+    "links": [
+      "https://docs.pytorch.org/docs/main/user_guide/torch_compiler/torch.compiler_cudagraph_trees.html"
+    ]
+  },
+  {
+    "id": 31,
+    "title": "Backup: the compiler vocabulary",
+    "timing": "Backup, outside the scheduled 45 minutes",
+    "purpose": "Provide plain definitions for questions from newcomers.",
+    "brief": "A short glossary, without adding new concepts.",
+    "notes": "Use these terms to answer beginner questions. Emphasize that a kernel is not a model layer and that a tensor is not inherently stored on a GPU.",
+    "takeaway": "The vocabulary names mechanisms already explained in the talk.",
+    "transition": "",
+    "scene": null,
+    "storyboard": "",
+    "links": []
+  }
+]
