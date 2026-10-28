@@ -47,6 +47,7 @@ export default function App() {
   const contentsButton = useRef<HTMLButtonElement>(null);
   const lastActive = useRef(1);
   const slide = content[active - 1];
+  const presenterName = settings.presenter ?? copy[0].presenter ?? "";
   const title = (id: number) => settings.titles?.[id] || copy[id - 1].title;
   const navigate = useCallback((id: number, instant = false) => {
     const target = Math.max(1, Math.min(content.length, id));
@@ -264,9 +265,9 @@ export default function App() {
                   <p className="hero-subtitle">
                     How compilers avoid unnecessary work.
                   </p>
-                  {settings.presenter && (
+                  {presenterName && (
                     <p className="presenter">
-                      {settings.presenter}
+                      {presenterName}
                       {settings.affiliation && ` · ${settings.affiliation}`}
                     </p>
                   )}
@@ -455,7 +456,7 @@ export default function App() {
                     Presenter name
                     <input
                       placeholder="Your name"
-                      value={settings.presenter ?? ""}
+                      value={presenterName}
                       onChange={(e) =>
                         setSettings({ ...settings, presenter: e.target.value })
                       }
