@@ -1,0 +1,175 @@
+[
+  {
+    "visualId": 1,
+    "title": "Your AI Is Doing Extra Work",
+    "timing": "0:00–0:30",
+    "notes": "Introduce execution of an existing model. Keep its weights and intended computation fixed. Ask whether the machine needs every memory transfer and setup step in a straightforward implementation. Keep event acknowledgements within this opening. This is an inference talk; no GPU or compiler background is required.",
+    "takeaway": "The same intended computation can have different execution costs.",
+    "transition": "Let’s start with a calculation small enough to follow completely."
+  },
+  {
+    "visualId": 2,
+    "title": "One computation, two execution plans",
+    "timing": "0:30–3:00",
+    "notes": "Define a tensor as an array of numbers. Starting with \\([-5,1,4]\\), adding three gives \\([-2,4,7]\\), then ReLU gives \\([0,4,7]\\). Explain while the 48-second animation runs. The separate path writes and reads a temporary array. The fused path keeps intermediate working values inside the computation. Both produce the same result without changing weights or training another model. The value-by-value animation is for teaching; GPU threads can work in parallel. Use the final state to identify the removed traffic without replaying the full explanation. Manually finding every opportunity would not scale to a whole model.",
+    "takeaway": "Both plans compute the same result; one avoids a temporary tensor.",
+    "transition": "For a whole model, we need a tool that finds these opportunities systematically."
+  },
+  {
+    "visualId": 5,
+    "title": "How a compiler transforms a program",
+    "timing": "3:00–5:00",
+    "notes": "A compiler translates a program into another executable form. Play the existing pipeline animation and explain its structured representation as a worksheet of operations and relationships. An optimization pass makes a legal transformation over that representation. Use one fixed expression to show work performed during compilation. Lowering moves toward the target machine. Do not enumerate parsing or semantic-analysis stages. General compilers can optimize numerical loops too. Optimization is useful but is not the definition of compilation.",
+    "takeaway": "A structured representation makes program transformations possible.",
+    "transition": "For a neural network, that representation exposes whole operations on arrays."
+  },
+  {
+    "visualId": 201,
+    "title": "Compiling tensor operations",
+    "timing": "5:00–7:00",
+    "notes": "A tensor is an array of numbers. Operations such as matrix multiplication expose structure beyond individual scalar instructions. A matrix multiplication combines inputs using weights. A compiler can exploit relationships between whole operations. In the common torch.compile workflow, compilation happens lazily after actual inputs arrive, making initial calls more expensive. Later compatible calls can reuse compiled work. Explain first-call preparation versus later execution, without a separate ahead-of-time versus just-in-time taxonomy. Training also involves gradients, but this talk focuses on inference.",
+    "takeaway": "Tensor structure supports optimization, and compatible calls can reuse compiled work.",
+    "transition": "To choose a useful plan, we first need to understand what costs time.",
+    "scene": null,
+    "links": [
+      "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html"
+    ]
+  },
+  {
+    "visualId": 8,
+    "title": "The cost of moving data",
+    "timing": "7:00–8:30",
+    "notes": "Define a kernel as a program launched to perform GPU work. Distinguish device memory from CPU memory and from smaller storage near computation. Play the memory animation. Repeatedly moving values can cost more than simple arithmetic. Some workloads are compute limited or submission limited instead. This is a simplified hierarchy, not a literal diagram of every hardware path. Do not tour registers, shared memory and caches individually.",
+    "takeaway": "Data movement can be a major execution cost.",
+    "transition": "The compiler can change how operations use those resources."
+  },
+  {
+    "visualId": 9,
+    "title": "Choosing an execution plan",
+    "timing": "8:30–10:00",
+    "notes": "Show the running operation graph becoming executable work. A compiler can group compatible operations, select implementations and target the hardware. Define a backend as the part responsible for a target. Generated kernels can coexist with optimized libraries. Keep the TorchDynamo, FX and TorchInductor name chain out of spoken delivery. Preserve intended numerical behavior; compilation is not permission to lower precision.",
+    "takeaway": "An execution plan maps tensor operations to hardware work.",
+    "transition": "Our opening example shows the first opportunity: removing an intermediate round trip."
+  },
+  {
+    "visualId": 10,
+    "title": "Fusion avoids an intermediate tensor",
+    "timing": "10:00–12:00",
+    "notes": "Revisit the opening at tensor scale using the fusion animation. First identify the separate temporary write and read, then show their removal. Explain dependencies: an intermediate required by an external consumer may still need storage. Fusion requires compatible execution and resource requirements. A library may already implement a fused epilogue. Explain the movement while the animation runs rather than repeating every scalar calculation.",
+    "takeaway": "Fusion can remove an intermediate store and reload.",
+    "transition": "The intermediate still exists as a working value inside the computation."
+  },
+  {
+    "visualId": 11,
+    "title": "Inside the fused computation",
+    "timing": "12:00–13:00",
+    "notes": "Walk through load, add, activation and store. Distinguish a local working value from a separately materialized tensor. Keep one resource limit: combining operations may use more limited on-chip storage and reduce performance. Leave offsets, masks and pointer arithmetic in the backup explanation.",
+    "takeaway": "Intermediate values can stay inside the fused computation.",
+    "transition": "We can count the memory accesses that disappeared."
+  },
+  {
+    "visualId": 12,
+    "title": "Counting the removed traffic",
+    "timing": "13:00–14:00",
+    "notes": "For \\(N\\) four-byte elements, count four accesses per element in the separate path and two in the fused path: \\(16N\\) versus \\(8N\\) bytes. Bias reads are omitted in this simplified comparison. These are logical global-memory accesses, not measured physical HBM transactions. Caches, launches and arithmetic also affect timing, so this does not promise a twofold speedup.",
+    "takeaway": "The example removes a temporary write and read, not half of all runtime.",
+    "transition": "Fusion removes an intermediate. Tiling addresses repeated use of the same inputs."
+  },
+  {
+    "visualId": 13,
+    "title": "Several outputs reuse the same inputs",
+    "timing": "14:00–15:30",
+    "notes": "Use the small matrix-multiplication animation. Compute the first output: one times five plus two times seven equals nineteen. Show the next output, twenty-two, using the same row with a different column. Pause long enough to see which input values recur. The point is reuse, not a full matrix-multiplication lesson. The integers are exact teaching examples; real kernels use floating-point formats.",
+    "takeaway": "Several outputs need some of the same input values.",
+    "transition": "A larger computation can organize that reuse in blocks."
+  },
+  {
+    "visualId": 14,
+    "title": "Tiling reuses loaded blocks",
+    "timing": "15:30–18:00",
+    "notes": "Protect this explanation. Connect the reused row from the numerical example to blocks in the animation. One program owns an output block. It loads input blocks, uses their values across several outputs, and accumulates partial sums over successive chunks before storing results. Fast storage allows this reuse. Larger blocks can increase reuse but consume more limited storage and reduce the number of independent programs. This is a blocked algorithm, not a literal tensor-core instruction trace. Leave strides, thread mapping and autotuning in backup.",
+    "takeaway": "Loaded input blocks can contribute to several outputs before being replaced.",
+    "transition": "Even efficient kernels can lose time between launches."
+  },
+  {
+    "visualId": 16,
+    "title": "Reusing a prepared launch sequence",
+    "timing": "18:00–20:00",
+    "notes": "Use the replay animation to compare illustrative launch gaps while keeping kernel widths comparable. The host CPU submits GPU work; repeated submission matters especially for short kernels. CUDA Graph replay reuses a prepared sequence. Inputs may change, and kernels compute new outputs on each replay: this is not answer caching. An operation graph describes computation dependencies; a CUDA Graph records GPU execution work. Capture has constraints involving addresses, shapes and supported operations, but do not enumerate them. The timeline is schematic, not a profiler result.",
+    "takeaway": "Replay reduces repeated launch overhead while still executing the computation.",
+    "transition": "These plans are reusable only while their assumptions remain valid."
+  },
+  {
+    "visualId": 19,
+    "title": "When a saved plan can be reused",
+    "timing": "20:00–21:45",
+    "notes": "Use the guards animation. Different numerical input values can often use the same plan. Relevant changes to shape, dtype, device or other assumptions may require another path. Define a guard as a check that assumptions for a saved plan hold. A shape change does not always cause compilation: a dynamic program may already support it, or the runtime may choose another variant or fallback. This concerns execution assumptions, not statistical model generalization.",
+    "takeaway": "Reuse depends on checked assumptions, not identical input values.",
+    "transition": "A workload with changing lengths needs a policy for handling that variation."
+  },
+  {
+    "visualId": 20,
+    "title": "Handling different input shapes",
+    "timing": "21:45–23:15",
+    "notes": "Use varying utterance lengths as the example. Dynamic shapes let a program support a range of dimensions within constraints. Bucketing groups inputs and pads to chosen sizes, trading extra arithmetic for fewer variants. Neither always wins; use representative shapes to choose. Keep symbolic constraints and graph-break diagnostics out of the main explanation.",
+    "takeaway": "Shape handling is a workload-dependent execution choice.",
+    "transition": "A valid plan still needs to earn its preparation and execution costs."
+  },
+  {
+    "visualId": 21,
+    "title": "A faster part may barely change the whole",
+    "timing": "23:15–24:00",
+    "notes": "Use the runtime bar: halving a component that occupies half of runtime gives \\(1/2+(1/2)(1/2)=3/4\\) of the original total, a 25 percent reduction. A faster kernel does not imply the same service-level gain. Compilation can also cost more than it saves for infrequent work. Keep specialist kernels and domain invariants in backup.",
+    "takeaway": "Measure the full workload and account for preparation cost.",
+    "transition": "Repeated model execution makes these costs relevant to LLM serving."
+  },
+  {
+    "visualId": 202,
+    "title": "Compilation inside LLM serving",
+    "timing": "24:00–25:30",
+    "notes": "Prefill processes the prompt; decode repeatedly computes the next token using previously cached attention data. Each generated token still requires new model computation. Repetition makes per-step execution costs matter. Locate compilation and optimized kernels inside model execution, with request scheduling and cache management surrounding it. Fusion and reuse can help appropriate execution paths; CPU submission overhead can matter too. These are workload-dependent opportunities, not universal decode bottlenecks. In one sentence, require a gain in user-facing latency or useful throughput under representative traffic. Skip KV-cache implementation and disaggregated serving details.",
+    "takeaway": "Compilation is one execution layer within a larger serving system.",
+    "transition": "The execution plan also has to match the processor, including custom AI chips.",
+    "scene": null,
+    "links": [
+      "https://vllm-project.github.io/2025/08/20/torch-compile.html"
+    ]
+  },
+  {
+    "visualId": 203,
+    "title": "Targeting custom AI chips: Jalapeño",
+    "timing": "25:30–28:00",
+    "notes": "Spend about 90 seconds on the conceptual model-to-hardware diagram. Different processors have different instructions and memory resources. A target-specific compiler backend, optimized libraries and a runtime map model operations to executable work. Reconnect fusion to intermediate traffic and tiling to local storage and compute organization. The principles transfer; the implementations differ. CUDA Graph replay is NVIDIA-specific and does not transfer unchanged. Spend the final minute on the documented OpenAI example. On June 24, 2026, OpenAI and Broadcom unveiled Jalapeño, a custom inference accelerator. OpenAI reported engineering samples running ML workloads in the lab, including GPT-5.3-Codex-Spark, and planned initial deployment by the end of 2026. This is a concrete model-workload example, not evidence of broad production deployment. Explain that software must map computation to a chip’s execution resources as a general architecture principle. The diagram is conceptual: neither announcement identifies an OpenAI compiler stack, and we do not claim torch.compile directly targets Jalapeño. Omit performance claims, capacity figures and chip specifications.",
+    "takeaway": "Custom hardware needs software that maps model computation efficiently to its resources.",
+    "transition": "For an existing PyTorch workload, you can test the basic idea without designing hardware.",
+    "scene": null,
+    "links": [
+      "https://openai.com/index/openai-broadcom-jalapeno-inference-chip/",
+      "https://openxla.org/xla/architecture"
+    ]
+  },
+  {
+    "visualId": 23,
+    "title": "A first compilation experiment",
+    "timing": "28:00–29:00",
+    "notes": "Identify an existing loaded PyTorch model and a repeated inference computation. Point out where torch.compile wraps it. Initial execution can include compilation. Keep weights, precision and the initial input configuration fixed. eval changes behavior such as dropout; inference_mode disables autograd bookkeeping; neither alone compiles a model. Retain eager execution as the reference. Do not turn this into a line-by-line coding lesson or live exercise.",
+    "takeaway": "Try compilation on existing repeated computation while preserving a reference path.",
+    "transition": "Then check whether compiled execution helps your workload."
+  },
+  {
+    "visualId": 26,
+    "title": "Checking correctness and measuring runtime",
+    "timing": "29:00–31:00",
+    "notes": "Compare outputs with tolerances appropriate to the workload, with task-level checks when relevant. Warm both eager and compiled paths. Separate initial compilation cost from repeated execution. Use GPU events for device timing or synchronize host wall-clock timing to account for asynchronous GPU execution, matching the intended timing boundary. Run enough repetitions to see variation. Include representative input shapes, not just the most favorable case. Keep weights and precision fixed. Report compilation losing when it loses. The full coding-agent prompt, diagnostic flags and resources are take-home material accessed through Contents, not a spoken walkthrough.",
+    "takeaway": "Check correctness, separate startup from warmed timing, and measure representative work.",
+    "transition": "The experiment tests the same idea we started with."
+  },
+  {
+    "visualId": 28,
+    "title": "More efficient execution of the same computation",
+    "timing": "31:00–32:00",
+    "notes": "Return to the opening calculation and its identical outputs. Connect the removed temporary to the wider story: compilers help reduce avoidable movement and setup, and adapt execution to hardware within correctness and workload constraints. End with one action: test a repeated computation and measure the full workload. Introduce no further terminology and do not walk through resources. Allow about one additional minute across the full talk for normal transitions, targeting 33 minutes. Questions and audience stoppages are outside this budget.",
+    "takeaway": "A different execution plan can preserve the computation and reduce its cost.",
+    "transition": "Questions."
+  }
+]

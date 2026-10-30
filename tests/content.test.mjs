@@ -37,3 +37,30 @@ test("presentation preserves all descriptor slides and nine named scenes", async
   );
   assert.ok(content.every((s) => s.notes && s.takeaway && s.timing));
 });
+
+test("short talk has 20 contiguous timed slides, all nine scenes and a sourced Jalapeño example", async () => {
+  const readJson = async (path) => JSON.parse(await readFile(new URL(path, import.meta.url), "utf8"));
+  const [revised, archive] = await Promise.all([
+    readJson("../src/presentation-slides.json"),
+    readJson("../src/content.json"),
+  ]);
+  assert.equal(revised.length, 20);
+  assert.equal(new Set(revised.map((slide) => slide.visualId)).size, 20);
+  const seconds = (value) => value.split(":").reduce((minutes, part) => minutes * 60 + Number(part), 0);
+  let end = 0;
+  for (const slide of revised) {
+    const [start, finish] = slide.timing.split("–").map(seconds);
+    assert.equal(start, end, `Timing gap before ${slide.title}`);
+    assert.ok(finish > start);
+    end = finish;
+    assert.ok(slide.title && slide.notes && slide.takeaway && slide.transition);
+    assert.ok(archive.some((entry) => entry.id === slide.visualId) || slide.scene === null);
+  }
+  assert.equal(end, 32 * 60);
+  assert.equal(revised.filter((slide) => archive.find((entry) => entry.id === slide.visualId)?.scene).length, 9);
+  const chip = revised.find((slide) => slide.visualId === 203);
+  assert.match(chip.title, /Jalapeño/);
+  assert.match(chip.notes, /lab/);
+  assert.match(chip.notes, /conceptual/);
+  assert.ok(chip.links.includes("https://openai.com/index/openai-broadcom-jalapeno-inference-chip/"));
+});

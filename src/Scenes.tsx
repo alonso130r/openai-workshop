@@ -105,20 +105,28 @@ export default function ScenePlayer({
     [name],
   );
   useEffect(() => {
+    const onAdvance = (e: Event) => {
+      if (!playing && clock.current < plan.duration) {
+        e.preventDefault();
+        toggle();
+      }
+    };
     const onToggle = () => toggle(),
       onStep = (e: Event) => step((e as CustomEvent<number>).detail),
       onVisibility = () => {
         if (document.hidden) setPlaying(false);
       };
+    document.addEventListener("presentation-advance", onAdvance);
     document.addEventListener("presentation-toggle", onToggle);
     document.addEventListener("presentation-step", onStep);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
+      document.removeEventListener("presentation-advance", onAdvance);
       document.removeEventListener("presentation-toggle", onToggle);
       document.removeEventListener("presentation-step", onStep);
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [toggle, step]);
+  }, [toggle, step, playing, plan.duration]);
   useEffect(() => {
     if (!playing) return;
     let frame = 0,
@@ -185,7 +193,7 @@ export default function ScenePlayer({
                     ? "Replay animation"
                     : "Play animation"
             }
-            title="Play / pause: Space"
+            title="Play / pause"
             onClick={toggle}
           >
             <PlayIcon playing={playing} replay={time >= plan.duration} />

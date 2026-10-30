@@ -99,6 +99,42 @@ function ReuseSketch() {
 
 export function StaticVisual({ id }: { id: number }) {
   switch (id) {
+    case 201:
+      return (
+        <div className="plan-recap">
+          <Flow items={["Tensor operations", "Compile on first use", "Execution plan"]} />
+          <Flow items={["Compatible inputs", "Reuse the plan", "New outputs"]} />
+          <p className="one-line">Preparation costs time; repeated calls can reuse it.</p>
+        </div>
+      );
+    case 202:
+      return (
+        <div className="single-diagram">
+          <Flow items={["Process prompt", "Generate next token", "Repeat"]} />
+          <div className="kernel-enclosure">
+            <p className="diagram-label">Inside model execution</p>
+            <Flow items={["Tensor operations", "Compilation + optimized kernels", "Target hardware"]} />
+          </div>
+          <p className="short-note">The serving engine also schedules requests and manages cached attention data.</p>
+        </div>
+      );
+    case 203:
+      return (
+        <div className="single-diagram chip-diagram">
+          <p className="diagram-label">Conceptual execution paths</p>
+          <div className="chip-paths">
+            <Flow items={["Model operations", "GPU backend + libraries", "GPU runtime"]} />
+            <Flow items={["Model operations", "Custom-chip backend + libraries", "Chip runtime"]} />
+          </div>
+          <p className="one-line">Fusion and tiling adapt to the target’s resources.</p>
+          <div className="chip-example">
+            <h3>OpenAI + Broadcom: Jalapeño</h3>
+            <p>Custom inference accelerator; lab workloads include GPT-5.3-Codex-Spark.</p>
+            <p className="short-note">OpenAI announcement, June 2026. Initial deployment planned by end of 2026.</p>
+          </div>
+          <p className="short-note">Conceptual diagram; OpenAI’s internal compiler stack is not specified.</p>
+        </div>
+      );
     case 101:
       return (
         <div className="single-diagram serving-diagram">
@@ -307,16 +343,16 @@ export function StaticVisual({ id }: { id: number }) {
       return (
         <div className="shape-comparison">
           <div>
-            <h3>One shape</h3>
-            <MathText tex={String.raw`128\times256`} />
-            <Flow items={["Input", "Plan A"]} />
+            <h3>Dynamic shapes</h3>
+            <Flow items={["Different lengths", "Plan supporting a range"]} />
+            <p className="short-note">One program handles supported variation.</p>
           </div>
           <div>
-            <h3>A range of shapes</h3>
-            <MathText tex={String.raw`128\times256,\quad192\times256`} />
-            <Flow items={["Either input", "Plan B"]} />
+            <h3>Shape buckets</h3>
+            <Flow items={["Group + pad lengths", "Plan for each bucket"]} />
+            <p className="short-note">Padding trades extra work for fewer variants.</p>
           </div>
-          <p className="short-note">A single plan may support a range.</p>
+          <p className="short-note">Choose using representative inputs.</p>
         </div>
       );
     case 21:
@@ -400,9 +436,9 @@ export function StaticVisual({ id }: { id: number }) {
       return (
         <Checks
           items={[
-            "Keep the model, inputs and precision fixed.",
-            "Check answers before comparing speed.",
-            "Separate first-call cost from repeated-call time.",
+            "Check outputs with the same weights and precision.",
+            "Separate startup cost from warmed execution.",
+            "Time representative inputs; account for asynchronous GPU work.",
           ]}
         />
       );
@@ -426,7 +462,7 @@ export function StaticVisual({ id }: { id: number }) {
       return (
         <div className="closing-summary">
           <Flow
-            items={["Original model", "Compiled execution plan", "Equivalent results"]}
+            items={["Same computation", "More efficient execution plan", "Equivalent results"]}
           />
           <div className="two-questions">
             <div>

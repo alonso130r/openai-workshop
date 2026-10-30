@@ -89,7 +89,6 @@ em {
   min-height: 100svh;
   position: relative;
   scroll-snap-align: start;
-  scroll-snap-stop: always;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2207,3 +2206,25 @@ blockquote {
     min-width: 170px;
   }
 }
+
+/* Separate, scrollable presenter reference for the unlisted notes URL. */
+.notes-page {
+  height: 100svh;
+  overflow-y: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+.notes-page h1 { font-size: 30px; }
+.notes-page-slide { padding: 32px 0; border-top: 1px solid #333; }
+.notes-page-slide h2 { margin: 10px 0 0; font-size: 24px; }
+
+/* Backup material opens explicitly, outside the main slide sequence. */
+.side-panel.backup { width: min(1100px, 96vw); }
+.side-panel.backup .slide-visual { min-height: 200px; margin: 2rem 0; }
+.backup-return { margin-bottom: 1.5rem; }
+.chip-paths { display: grid; gap: 1.2rem; }
+.chip-example { border-top: 1px solid #333; margin-top: 1.2rem; padding-top: 1rem; }
+.chip-example h3 { color: #83c167; margin: 0 0 .5rem; }
+.chip-example p { margin: .5rem 0; }
+.chip-diagram .short-note { margin-top: .75rem; }
