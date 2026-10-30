@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import { MathText } from "./Math";
+import resources from "./resources.json";
 
 const urls = {
   tutorial:
@@ -99,6 +100,26 @@ function ReuseSketch() {
 
 export function StaticVisual({ id }: { id: number }) {
   switch (id) {
+    case 204:
+      return (
+        <div className="closing-resources">
+          <div className="resource-columns">
+            {resources.map((group) => (
+              <div key={group.title}>
+                <h3>{group.title}</h3>
+                <ul>
+                  {group.links.map((link) => (
+                    <li key={link.url}>
+                      <a href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <p className="resource-outro">Questions welcome · Every resource title is a link</p>
+        </div>
+      );
     case 201:
       return (
         <div className="plan-recap">

@@ -1,0 +1,48 @@
+[
+  {
+    "title": "Try it and go deeper",
+    "links": [
+      {
+        "label": "PyTorch: first torch.compile experiment",
+        "url": "https://docs.pytorch.org/tutorials/intermediate/torch_compile_tutorial.html"
+      },
+      {
+        "label": "Triton: vector addition and matrix multiplication",
+        "url": "https://triton-lang.org/main/getting-started/tutorials/index.html"
+      },
+      {
+        "label": "vLLM: compilation inside LLM serving",
+        "url": "https://vllm-project.github.io/2025/08/20/torch-compile.html"
+      },
+      {
+        "label": "OpenXLA: compiler backends and new hardware",
+        "url": "https://openxla.org/xla/architecture"
+      }
+    ]
+  },
+  {
+    "title": "OpenAI: models, kernels and custom chips",
+    "links": [
+      {
+        "label": "Jalapeño: custom inference chip and lab workloads",
+        "url": "https://openai.com/index/openai-broadcom-jalapeno-inference-chip/"
+      },
+      {
+        "label": "OpenAI + Broadcom: accelerator partnership",
+        "url": "https://openai.com/index/openai-and-broadcom-announce-strategic-collaboration/"
+      },
+      {
+        "label": "gpt-oss: open-weight model announcement",
+        "url": "https://openai.com/index/introducing-gpt-oss/"
+      },
+      {
+        "label": "gpt-oss: code and deployment examples",
+        "url": "https://github.com/openai/gpt-oss"
+      },
+      {
+        "label": "Triton: OpenAI introduction",
+        "url": "https://openai.com/index/triton/"
+      }
+    ]
+  }
+]

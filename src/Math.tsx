@@ -34,3 +34,19 @@ export function Prose({ text }: { text: string }) {
     </>
   );
 }
+
+export function SpeakerScript({ text }: { text: string }) {
+  return (
+    <ul className="speaker-script">
+      {text.split("\n").filter(Boolean).map((line, index) => {
+        const bullet = line.replace(/^- /, "");
+        const cue = bullet.startsWith("[") && bullet.endsWith("]");
+        return (
+          <li key={index} className={cue ? "script-cue" : undefined}>
+            <Prose text={bullet} />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}

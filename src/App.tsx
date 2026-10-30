@@ -8,7 +8,7 @@ import {
 } from "react";
 import { allContent, backupContent, content, copy } from "./presentation";
 import { StaticVisual } from "./StaticVisual";
-import { Prose } from "./Math";
+import { Prose, SpeakerScript } from "./Math";
 const ScenePlayer = lazy(() => import("./Scenes"));
 const saved = () => {
   try {
@@ -196,17 +196,17 @@ export default function App() {
   if (notesOnly) {
     return (
       <main className="notes-page notes">
-        <h1>Presenter notes</h1>
+        <h1>Presenter script</h1>
+        <p className="script-guide">Read the bullets aloud. Bracketed cues are actions, not spoken text. Each transition is the final spoken line before advancing.</p>
         {allContent.map((item, index) => (
           <section className="notes-page-slide" key={item.id}>
             <span className="notes-timing">{String(item.id).padStart(2, "0")} · {item.timing}</span>
             <h2>{title(item.id)}</h2>
-            <h3>Explanation</h3>
-            <p className="notes-copy"><Prose text={item.notes} /></p>
+            <h3>Say</h3>
+            <SpeakerScript text={item.notes} />
             {copy[index].speakerExtra && <><h3>Full example</h3><p><Prose text={copy[index].speakerExtra ?? ""} /></p></>}
-            <h3>Audience takeaway</h3>
-            <p><Prose text={item.takeaway} /></p>
-            {item.transition && <><h3>Transition</h3><p>{item.transition}</p></>}
+
+            {item.transition && <><h3>Say to transition</h3><p>{item.transition}</p></>}
             {item.storyboard && <details><summary>Animation storyboard</summary><p className="storyboard"><Prose text={item.storyboard} /></p></details>}
             {item.links.length > 0 && <><h3>Sources</h3><ul className="source-list">{item.links.map((url) => <li key={url}><a href={url} target="_blank" rel="noreferrer">{url.replace("https://", "")}</a></li>)}</ul></>}
           </section>
@@ -402,7 +402,7 @@ export default function App() {
                 <button className="backup-return" onClick={() => setPanel("contents")}>Back to Contents</button>
                 <h2>{backup.title}</h2>
                 <div className="slide-visual"><StaticVisual id={backup.visualId} /></div>
-                {notesEnabled && <><h3>Explanation</h3><p className="notes-copy"><Prose text={backup.notes} /></p></>}
+                {notesEnabled && <><h3>Say</h3><SpeakerScript text={backup.notes} /></>}
                 {copy[backup.id - 1].speakerExtra && <p className="notes-copy"><Prose text={copy[backup.id - 1].speakerExtra ?? ""} /></p>}
                 {backup.links.length > 0 && <><h3>Sources</h3><ul className="source-list">{backup.links.map((url) => <li key={url}><a href={url} target="_blank" rel="noreferrer">{url.replace("https://", "")}</a></li>)}</ul></>}
               </>
@@ -410,10 +410,9 @@ export default function App() {
               <>
                 <h2>{title(active)}</h2>
                 <span className="notes-timing">{slide.timing}</span>
-                <h3>Explanation</h3>
-                <p className="notes-copy">
-                  <Prose text={slide.notes} />
-                </p>
+                <h3>Say</h3>
+                <p className="script-guide">Read the bullets aloud; bracketed cues are actions.</p>
+                <SpeakerScript text={slide.notes} />
                 {copy[active - 1].speakerExtra && (
                   <>
                     <h3>Full example</h3>
@@ -422,13 +421,9 @@ export default function App() {
                     </p>
                   </>
                 )}
-                <h3>Audience takeaway</h3>
-                <p>
-                  <Prose text={slide.takeaway} />
-                </p>
                 {slide.transition && (
                   <>
-                    <h3>Transition</h3>
+                    <h3>Say to transition</h3>
                     <p>{slide.transition}</p>
                   </>
                 )}

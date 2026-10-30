@@ -1,6 +1,7 @@
 import original from "./content.json";
 import originalCopy from "./presentation-copy.json";
 import revised from "./presentation-slides.json";
+import backupScripts from "./backup-scripts.json";
 
 // Visual IDs select existing diagrams; display IDs follow the shorter talk.
 export const content = revised.map((slide, index) => ({
@@ -21,6 +22,7 @@ export const backupContent = backupIds.map((visualId, index) => {
   return {
     ...slide,
     visualId,
+    notes: backupScripts[String(visualId) as keyof typeof backupScripts],
     id: content.length + index + 1,
     title: `Backup: ${slide.title.replace(/^Backup: /, "")}`,
     timing: "Backup and take-home material, outside the 33-minute talk",

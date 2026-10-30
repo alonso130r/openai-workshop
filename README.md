@@ -1,6 +1,6 @@
 # Your AI Is Doing Extra Work
 
-A React presentation based on `docs/Your_AI_Slide_Guide.md`: 20 main full-height scrolling sections with fixed scroll-snap stop-points, nine manually controlled Manim React scenes, and speaker notes. The planned content lasts 32 minutes, with about one minute for transitions; questions and audience pauses are excluded. Eight backups and take-home resources open explicitly through Contents and are outside forward navigation. The presentation uses a pure black canvas with mathematical typography and restrained controls.
+A React presentation based on `docs/Your_AI_Slide_Guide.md`: 21 main full-height scrolling sections with fixed scroll-snap stop-points, nine manually controlled Manim React scenes, and speaker notes. The planned content lasts 32 minutes, with about one minute for transitions; questions and audience pauses are excluded. Eight backups and take-home resources open explicitly through Contents and are outside forward navigation. The presentation uses a pure black canvas with mathematical typography and restrained controls.
 
 ## Run
 
@@ -12,7 +12,7 @@ Install dependencies with `npm ci`, then run `npm run dev`. Build with `npm run 
 - Open Contents with C. Escape closes the panel.
 - Press Space to advance the presentation. On an animated slide, the first press starts the scene and the next press advances to the next slide. Use the play button to pause or resume, and [ and ] or the step arrows to move between explanatory beats. Replay and scrub are supported, and the speed selector adjusts pacing. Static slides never animate. Reduced-motion preferences are respected until you explicitly enable playback.
 - Each slide has a stable `#slide-N` link. Fullscreen is available in supported browsers.
-- Presenter notes are hidden by default. Add `?notes=1` to the site URL to open a scrollable notes-only view, including on a phone. This view includes the main talk followed by backup and take-home notes. This is an unlisted link, not access protection: anyone with the link or the site files can read the notes. To show Notes to everyone later, set `notesEnabled` to `true` in `src/App.tsx` and rebuild the site. Previously saved presentation details remain in the browser.
+- Presenter notes are hidden by default. Add `?notes=1` to the site URL to open a scrollable notes-only view, including on a phone. This view includes a read-aloud bullet script for the main talk followed by backup and take-home scripts. Bracketed animation cues are actions rather than spoken text; transitions provide the final line before advancing. This is an unlisted link, not access protection: anyone with the link or the site files can read the notes. To show Notes to everyone later, set `notesEnabled` to `true` in `src/App.tsx` and rebuild the site. Previously saved presentation details remain in the browser.
 
 ## Content and animation
 
@@ -25,3 +25,5 @@ The `manim-react` package is not available on npm. Its actual source is vendored
 ## Deployment
 
 Vite exports a static site into `dist/`. The Sites identity and static directory live in `.openai/hosting.json`. Publication is private by default; changing the visitor audience requires a separate user request.
+
+The final audience-facing slide contains clickable further-reading links, including the OpenAI Jalapeño and Broadcom announcements, gpt-oss announcement and repository, and Triton introduction. `src/resources.json` supplies the links for both the slide and its notes. The closing and resource slides share the final content minute.

@@ -2228,3 +2228,23 @@ blockquote {
 .chip-example h3 { color: #83c167; margin: 0 0 .5rem; }
 .chip-example p { margin: .5rem 0; }
 .chip-diagram .short-note { margin-top: .75rem; }
+
+.speaker-script { padding-left: 1.4em; line-height: 1.65; }
+.speaker-script li { padding-left: .3em; margin-bottom: .9em; }
+.speaker-script .script-cue { color: #83c167; font-style: italic; }
+.script-guide { color: #aaa; line-height: 1.6; }
+
+.closing-resources { max-width: 1250px; margin: auto; }
+.resource-intro, .resource-outro { color: #bbb; font-size: clamp(16px, 1.7vw, 25px); line-height: 1.5; }
+.resource-intro { margin: 0 0 2rem; }
+.resource-outro { margin: 2rem 0 0; }
+.resource-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; text-align: left; }
+.resource-columns h3 { color: #83c167; font-size: clamp(18px, 1.9vw, 28px); line-height: 1.35; margin: 0 0 1rem; }
+.resource-columns ul { list-style: none; padding: 0; margin: 0; }
+.resource-columns li { margin: 0; border-bottom: 1px solid #252525; }
+.resource-columns a { display: block; color: var(--blue); font-size: clamp(17px, 1.7vw, 25px); line-height: 1.4; padding: .7rem 0; text-decoration: none; }
+.resource-columns a:hover, .resource-columns a:focus-visible { text-decoration: underline; text-underline-offset: .2em; }
+@media (max-width: 650px) {
+  .resource-columns { grid-template-columns: 1fr; gap: 1.5rem; }
+  .resource-intro { margin-bottom: 1.2rem; }
+}
